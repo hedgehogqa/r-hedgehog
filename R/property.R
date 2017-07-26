@@ -2,22 +2,19 @@
 #' Check a property holds for all generated values.
 #'
 #' True example:
-#' >>> forall ( list (a = vec( gen.sample(1:100)), b = vec(gen.sample(1:100))), function(x) { identical ( c(rev(x$b), rev(x$a)), rev( c(x$a, x$b ))) } )
+#' > forall ( list (a = vec( gen.sample(1:100)), b = vec(gen.sample(1:100))), function(x) { identical ( c(rev(x$b), rev(x$a)), rev( c(x$a, x$b ))) } )
 #' [1] TRUE
 #'
 #' False example showing minimum shrink:
-#' >>> forall ( vec( gen.sample(1:100)), function(x) { identical ( rev(x), x ) } )
-#' $smallest
+#' > forall ( vec( gen.sample(1:100)), function(x) { identical ( rev(x), x ) } )
+#' Falsifiable after 1 tests, and 5 shrinks
+#' Predicate is falsifiable
+#'
+#' Counterexample:
 #' [1] 1 2
-#'
-#' $shrinks
-#' [1] 10
-#'
-#' [1] FALSE
 forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 1000) {
   # R doesn't have good tail call optimisation.
-  # Using a for loop so we don't stack overflow
-  # on a large number of tests.
+  # Hence, loops.
   for (i in 1:tests) {
     trees  <- unfoldgenerator( generator, size )
     tree   <- tree.traverse ( trees )
@@ -38,14 +35,13 @@ forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 
       cat ( "Counterexample:\n")
       print ( counterexample$smallest )
 
-      # We failed.
+      # Exit the loop with failure
       return(invisible(F))
     }
   }
   cat( paste("Passed after", tests, "tests\n") )
   return(T)
 }
-
 
 #' Turn a generator into a tree
 #' and a list of generators into a list of trees.
@@ -114,15 +110,16 @@ tree.traverse <- function ( trees ) {
 #' Search through the trees to find the smallest value we can
 #' which still fails the test.
 find.smallest <- function ( tree, property, shrink.limit, shrinks ) {
-  # Force the lazy children
-  children <- tree$children()
 
-  # Our accumulator and return type.
+  # The smallest value so far.
   point    <- list ( smallest = tree$root, shrinks = shrinks )
 
   # If we've reached the shrink counter return.
   if (shrinks >= shrink.limit)
     return( point )
+
+  # We're looking further, so force the lazy tree's branches.
+  children <- tree$children()
 
   # Search the branches of the tree.
   # This is a recursive depth first search, which assumes that no
