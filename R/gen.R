@@ -1,7 +1,8 @@
 #' Constructor for a generator.
 #'
-#' We're lazy and are using R's global seed.
-#' A gen essentially a function which takes
+#' We're using R's global random number gen.
+#'
+#' A gen is essentially a function which takes
 #' a size parameter and returns a lazy tree.
 gen <- function ( x ) {
   structure ( list ( unGen = x ), class = "gen" )
@@ -11,6 +12,14 @@ gen <- function ( x ) {
 gen.example <- function ( g, size = 5 ) {
   tree <- g$unGen(size)
   tree$root
+}
+
+print.gen <- function ( g ) {
+  cat( "Hedgehog generator:\n" )
+  cat( "A generator is a function which produces random trees\n" )
+  cat( "using a size parameter to scale it.\n\n" )
+  cat( "Example:\n" )
+  print ( gen.example ( g ))
 }
 
 #' Generate a structure
@@ -66,6 +75,13 @@ gen.bind <- function ( f, g ) {
 #' Use a value as an unshrinking generator.
 gen.pure <- function ( x ) {
   gen ( function ( size ) tree( x ) )
+}
+
+gen.map <- function ( f, g ) {
+  gen ( function ( size ) {
+    tree <- g$unGen(size)
+    tree.map ( f, tree )
+  })
 }
 
 #' Helper for making a gen with a size parameter.
@@ -129,9 +145,20 @@ gen.shrink <- function ( shrinker, g ) {
   )
 }
 
-#' Generate a vector of primitive values with
-#' fixed length
+#' Generate a vector of primitive values
+#' from a generator
+vec <- function ( g ) {
+  gen.map ( unlist, gen.list(g) )
+}
+
+#' Generate a vector of primitive values
+#' from a generator.
 vec.of <- function ( x, g ) {
+  gen.map ( unlist, gen.list.of(x, g) )
+}
+
+#' Generate a list of values with fixed length
+gen.list.of <- function ( x, g ) {
   if (!inherits(g, "gen"))
     stop("vec.of function takes a 'gen'");
 
@@ -140,9 +167,9 @@ vec.of <- function ( x, g ) {
   )
 }
 
-#' Generate a vector of primitive values, with
+#' Generate a list of values, with
 #' length bounded by the size parameter.
-vec <- function ( gen ) {
+gen.list <- function ( gen ) {
   if (!inherits(gen,"gen"))
     stop("vec function takes a 'gen'");
 

@@ -65,13 +65,13 @@ tree.unfoldForest <- function ( shrink, x ) {
 #' Create a tree of a vector from a generator for a value.
 tree.replicateM <- function ( num, ma ) {
   if ( num <= 0) {
-    tree ( c() )
+    tree ( list() )
   } else {
     tree.bind (
       function(a) {
         tree.bind (
           function(as)
-            tree( c( a , as ) )
+            tree( unlist( list( list(a), as ), recursive = F))
           , tree.replicateM ( num - 1, ma )
         )
       }

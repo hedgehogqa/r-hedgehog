@@ -13,8 +13,8 @@
 #' Counterexample:
 #' [1] 1 2
 forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 1000) {
-  # R doesn't have good tail call optimisation.
-  # Hence, loops.
+
+  # R doesn't have good tail call optimisation, hence, loops.
   for (i in 1:tests) {
     trees  <- unfoldgenerator( generator, size )
     tree   <- tree.traverse ( trees )
@@ -26,6 +26,9 @@ forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 
       # counterexample we can ( by shrinking ).
       counterexample <- find.smallest( tree, property, shrink.limit, 0 )
 
+      # Print a nice message for the user.
+      # This could be moved into a fully fledged
+      # report type.
       cat ( paste("Falsifiable after", i, "tests, and",  counterexample$shrinks, "shrinks\n") )
 
       # Print the message which comes with the counterexample.
@@ -43,8 +46,8 @@ forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 
   return(T)
 }
 
-#' Turn a generator into a tree
-#' and a list of generators into a list of trees.
+#' Turn a generator into a tree and a list of generators
+#' into a list of trees.
 #' Non-generator and list values are passed along
 #' as is.
 #' Generators can use the random number generator when
@@ -75,12 +78,14 @@ tree.traverse <- function ( trees ) {
     info    <- attributes(trees)
 
     # Recursively call tree.traverse on the list so all
-    # values in the list are actually trees.
+    # values in the list are now actually trees.
     lowered <- lapply ( trees, tree.traverse )
 
     # Reduce the list of trees into a single tree by folding
     # over it with a bind (this is essentially a foldM).
     # with an list accumulating in the fold.
+    #
+    # /Note/ This may change to allow *applicative* shrinking.
     merged  <- Reduce ( function (acc, t) {
       tree.bind (
         function(a) {
