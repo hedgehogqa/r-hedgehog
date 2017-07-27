@@ -1,7 +1,11 @@
-library(R.template)
+library(hedgehog)
 
-context("R.template")
+context("hedgehog")
 
-test_that("addition is addition", {
-  expect_true(add(1,2) == 3)
+property("Constants work as generators", {
+  forall (T, function(x) x)
+})
+
+property("Constants work as generators", {
+  forall (F, function(x) x)
 })
