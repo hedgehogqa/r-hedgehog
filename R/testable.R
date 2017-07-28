@@ -22,13 +22,11 @@ testable <- function(type, message = NULL, srcref = NULL) {
 #' R ad-hoc testable class
 as.testable <- function(x, ...) UseMethod("as.testable", x)
 
-#' @export
 as.testable.default <- function(x, ..., srcref = NULL) {
   stop("Don't know how to convert '", paste(class(x), collapse = "', '"),
        "' to testable.", call. = FALSE)
 }
 
-#' @export
 as.testable.testable <- function(x, ..., srcref = NULL) {
   if (is.null(x$srcref)) {
     x$srcref <- srcref
@@ -36,13 +34,11 @@ as.testable.testable <- function(x, ..., srcref = NULL) {
   x
 }
 
-#' @export
 as.testable.logical <- function(x, message, ..., srcref = NULL, info = NULL) {
   type <- if (x) "success" else "failure"
   testable(type, "Predicate is falsifiable\n")
 }
 
-#' @export
 as.testable.error <- function(x, ..., srcref = NULL) {
   error <- x$message
 
@@ -55,7 +51,6 @@ as.testable.error <- function(x, ..., srcref = NULL) {
   testable("error", msg, srcref)
 }
 
-#' @export
 as.testable.warning <- function(x, ..., srcref = NULL) {
   msg <- x$message
   testable("warning", msg, srcref)
@@ -89,26 +84,20 @@ testable_ok <- function(exp) {
   testable_type(exp) %in% c("success", "warning")
 }
 
-#' @export
 #' @rdname testable
 #' @param x object to test for class membership
 is.testable <- function(x) inherits(x, "testable")
 
-
-#' @export
 print.testable <- function(x, ...) cat(format(x), "\n")
 
-#' @export
 format.testable_success <- function(x, ...) {
   "Success"
 }
 
-#' @export
 format.testable_error <- function(x, ...) {
   paste("Exception encountered in property:", x$message, sep = "\n")
 }
 
-#' @export
 format.testable <- function(x, ...) {
   x$message
 }

@@ -1,17 +1,39 @@
 
+#' Hedgehog property test
+#'
 #' Check a property holds for all generated values.
 #'
-#' True example:
-#' > forall ( list (a = vec( gen.sample(1:100)), b = vec(gen.sample(1:100))), function(x) { identical ( c(rev(x$b), rev(x$a)), rev( c(x$a, x$b ))) } )
-#' [1] TRUE
+#' @param generator a generator or list of generators
+#'   (potentially nested) to use for value testing.
+#' @param property a function which takes a value from
+#'   from the generator and tests some predicated against
+#'   it.
+#' @param tests the number of tests to run
+#' @param size the max size used for the generators
+#' @param shrink.limit the maximum number of shrinks to
+#'   run when shrinking a value to find the smallest
+#'   counterexample.
 #'
-#' False example showing minimum shrink:
-#' > forall ( vec( gen.sample(1:100)), function(x) { identical ( rev(x), x ) } )
-#' Falsifiable after 1 tests, and 5 shrinks
-#' Predicate is falsifiable
+#' @examples
+#' forall (
+#'   list ( a = vec( gen.sample(1:100))
+#'        , b = vec(gen.sample(1:100))
+#'        )
+#'   , function(x) {
+#'       identical ( c(rev(x$b), rev(x$a)), rev( c(x$a, x$b )))
+#'     }
+#' )
+#' # TRUE
 #'
-#' Counterexample:
-#' [1] 1 2
+#' # False example showing minimum shrink:
+#' forall ( vec( gen.sample(1:100)), function(x) { identical ( rev(x), x ) } )
+#' # Falsifiable after 1 tests, and 5 shrinks
+#' # Predicate is falsifiable
+#'
+#' # Counterexample:
+#' # [1] 1 2
+#'
+#' @export
 forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 1000) {
 
   # R doesn't have good tail call optimisation, hence, loops.
@@ -38,11 +60,21 @@ forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 
       cat ( "Counterexample:\n")
       print ( counterexample$smallest )
 
+      # If we're inside a runner, update the error tally.
+      if (exists("hedgehog.summary")) {
+        hedgehog.summary$failures <<- hedgehog.summary$failures + 1
+      }
+
       # Exit the loop with failure
       return(invisible(F))
     }
   }
   cat( paste("Passed after", tests, "tests\n") )
+
+  # If we're inside a runner, update the success tally.
+  if (exists("hedgehog.summary")) {
+    hedgehog.summary$successes <<- hedgehog.summary$successes + 1
+  }
   return(T)
 }
 

@@ -1,11 +1,15 @@
 Package: hedgehog
 Type: Package
-Title: Hedgehog will eat all your bugs
+Title: Hedgehog will Eat all your Bugs.
 Version: 1.0
 Date: 2017-03-02
 Author: Huw Campbell
-Maintainer: Who to complain to <huw.campbell@gmail.com>
-Description: Hedgehog will eat all your bugs.
+Maintainer: Huw Campbell <huw.campbell@gmail.com>
+Description: Hedgehog is a modern property-based
+  testing system, in the spirit of QuickCheck.
+  Hedgehog uses integrated shrinking, so shrinks
+  obey the invariants of generated values by
+  construction.
 License: MIT
-LazyData: true
-Imports: 
+Imports:
+RoxygenNote: 5.0.1

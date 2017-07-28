@@ -6,7 +6,8 @@ tree <- function( root, children_ = list() ) {
     list(
       root = root,
       children = function() {
-        if (is.null(eval.children)) eval.children <<- force(children_)
+        if (is.null(eval.children))
+          eval.children <<- force(children_)
         eval.children
       }
     ), class = "tree")
