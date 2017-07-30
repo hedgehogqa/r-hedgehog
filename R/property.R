@@ -3,6 +3,12 @@
 #'
 #' Check a property holds for all generated values.
 #'
+#' The generator used can be defined flexibly, in that
+#' one can pass in a list of generators, or even nest
+#' generators and constant values deeply into the gen
+#' argument and the whole construct will be treated
+#' as a generator.
+#'
 #' @param generator a generator or list of generators
 #'   (potentially nested) to use for value testing.
 #' @param property a function which takes a value from
@@ -34,13 +40,18 @@
 #' # [1] 1 2
 #'
 #' @export
-forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 1000) {
+forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 1000 ) {
+
+  pb <- progress_bar$new(
+          format = "  Running tests [:bar] :current of :total",
+          total = tests, clear = FALSE, width= 60 )
 
   # R doesn't have good tail call optimisation, hence, loops.
   for (i in 1:tests) {
     trees  <- unfoldgenerator( generator, size )
     tree   <- tree.traverse ( trees )
     value  <- tree$root
+    pb$tick()
 
     # Run the test
     if ( ! testable_success( run.prop(property, value ))) {
@@ -48,21 +59,15 @@ forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 
       # counterexample we can ( by shrinking ).
       counterexample <- find.smallest( tree, property, shrink.limit, 0 )
 
-      # Print a nice message for the user.
-      # This could be moved into a fully fledged
-      # report type.
-      cat ( paste("Falsifiable after", i, "tests, and",  counterexample$shrinks, "shrinks\n") )
-
       # Print the message which comes with the counterexample.
-      print ( run.prop(property, counterexample$smallest ) )
+      message <- run.prop( property, counterexample$smallest )
 
-      # Show the counterexamples
-      cat ( "Counterexample:\n")
-      print ( counterexample$smallest )
+      # Print a nice message for the user.
+      print ( report ( i, counterexample$shrinks, message, counterexample$smallest ) )
 
       # If we're inside a runner, update the error tally.
-      if (exists("hedgehog.summary")) {
-        hedgehog.summary$failures <<- hedgehog.summary$failures + 1
+      if (exists("hedgehog.internal")) {
+        hedgehog.internal$failures <<- hedgehog.internal$failures + 1
       }
 
       # Exit the loop with failure
@@ -72,8 +77,8 @@ forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 
   cat( paste("Passed after", tests, "tests\n") )
 
   # If we're inside a runner, update the success tally.
-  if (exists("hedgehog.summary")) {
-    hedgehog.summary$successes <<- hedgehog.summary$successes + 1
+  if (exists("hedgehog.internal")) {
+    hedgehog.internal$successes <<- hedgehog.internal$successes + 1
   }
   return(T)
 }
@@ -120,10 +125,10 @@ tree.traverse <- function ( trees ) {
     # /Note/ This may change to allow *applicative* shrinking.
     merged  <- Reduce ( function (acc, t) {
       tree.bind (
-        function(a) {
+        function(as) {
           tree.bind (
-            function(as)
-              tree( unlist( list ( a, list(as) ) , recursive = F))
+            function(a)
+              tree( unlist( list ( as, list(a) ) , recursive = F))
             , t
           )
         }
@@ -146,7 +151,7 @@ tree.traverse <- function ( trees ) {
 
 #' Search through the trees to find the smallest value we can
 #' which still fails the test.
-find.smallest <- function ( tree, property, shrink.limit, shrinks ) {
+find.smallest <- function ( tree, property, shrink.limit, shrinks, pb = NULL ) {
 
   # The smallest value so far.
   point    <- list ( smallest = tree$root, shrinks = shrinks )
@@ -161,14 +166,14 @@ find.smallest <- function ( tree, property, shrink.limit, shrinks ) {
   # Search the branches of the tree.
   # This is a recursive depth first search, which assumes that no
   # branch in a child will fail if the root doesn't as well.
-  smaller <- Find ( function( child ) { ! testable_success( run.prop( property, child$root )) }, children )
+  smaller <- Find ( function( child ) { !testable_success( run.prop( property, child$root )) }, children )
 
   # If there was nothing found, the the root must be the smallest
   # for this tree; otherwise, recurse into the child found.
   if (is.null(smaller)) {
     point
   } else {
-    find.smallest( smaller, property, shrink.limit, shrinks + 1 )
+    find.smallest( smaller, property, shrink.limit, shrinks + 1, pb )
   }
 }
 

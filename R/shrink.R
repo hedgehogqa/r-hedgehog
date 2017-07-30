@@ -35,3 +35,33 @@ halves <- function ( x ) {
     c( x %/% 2, halves ( x %/% 2) )
   }
 }
+
+#' Shrink a list by edging towards the empty list.
+#'
+#' >>> list [1,2,3]
+#' [[],[2,3],[1,3],[1,2]]
+#'
+#' >>> list "abcd"
+#' ["","cd","ab","bcd","acd","abd","abc"]
+#'
+#' /Note we always try the empty list first, as that is the optimal shrink./
+#' list :: [a] -> [[a]]
+#' list xs =
+#'  concatMap
+#'    (\k -> removes k xs)
+#'    (halves $ length xs)
+shrink.list <- function ( xs ) {
+  len     <- length ( xs )
+  remnums <- halves ( len )
+  new     <- lapply ( c(len, remnums), function (rn) {
+    removes( rn, xs )
+  })
+  unlist( new, recursive = F )
+}
+
+#' Produce all permutations of removing 'k' elements from a list.
+removes <- function ( num, xs ) {
+  lapply ( as.list( 1:(length(xs) - num + 1) ), function (s) {
+    xs[-c(s:(s+num-1))]
+  })
+}

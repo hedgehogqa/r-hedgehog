@@ -20,6 +20,9 @@ testable <- function(type, message = NULL, srcref = NULL) {
 }
 
 #' R ad-hoc testable class
+#'
+#' @param x object to build testable from
+#' @param ... extra arguments
 as.testable <- function(x, ...) UseMethod("as.testable", x)
 
 as.testable.default <- function(x, ..., srcref = NULL) {
@@ -35,8 +38,11 @@ as.testable.testable <- function(x, ..., srcref = NULL) {
 }
 
 as.testable.logical <- function(x, message, ..., srcref = NULL, info = NULL) {
-  type <- if (x) "success" else "failure"
-  testable(type, "Predicate is falsifiable\n")
+  type <- if (x) {
+    testable("success" , "Predicate is satisfied\n")
+  } else {
+    testable("failure" , "Predicate is falsifiable\n")
+  }
 }
 
 as.testable.error <- function(x, ..., srcref = NULL) {
