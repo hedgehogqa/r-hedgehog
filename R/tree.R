@@ -64,7 +64,7 @@ tree.unfoldForest <- function ( shrink, x ) {
 }
 
 #' Create a tree of a vector from a generator for a value.
-tree.replicateM <- function ( num, ma ) {
+tree.replicateM <- function ( num, ma, ...) {
   if ( num <= 0) {
     tree ( list() )
   } else {
@@ -72,10 +72,27 @@ tree.replicateM <- function ( num, ma ) {
       function(a) {
         tree.bind (
           function(as)
-            tree( unlist( list( list(a), as ), recursive = F))
+            tree( cons(a, as ))
           , tree.replicateM ( num - 1, ma )
         )
       }
-    , ma() )
+    , do.call(ma, list(...)) )
+  }
+}
+
+#' Create a tree of a vector from a generator for a value.
+tree.replicateS <- function ( num, ma, s, ...) {
+  if ( num <= 0) {
+    tree ( list() )
+  } else {
+    tree.bind (
+      function(a) {
+        tree.bind (
+          function(as)
+            tree( cons(a[[2]], as ))
+          , tree.replicateS ( num - 1, ma, a[[1]], ... )
+        )
+      }
+    , do.call(ma, cons(s, list(...))) )
   }
 }

@@ -12,4 +12,5 @@ Description: Hedgehog is a modern property-based
   construction.
 License: MIT
 Imports:
+Depends: progress
 RoxygenNote: 5.0.1
