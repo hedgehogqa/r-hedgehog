@@ -81,6 +81,7 @@ tree.replicateM <- function ( num, ma, ...) {
 }
 
 #' Create a tree of a vector from a generator for a value.
+#' carries around a state as well as the generator.
 tree.replicateS <- function ( num, ma, s, ...) {
   if ( num <= 0) {
     tree ( list() )

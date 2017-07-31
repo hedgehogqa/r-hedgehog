@@ -111,7 +111,7 @@ print.gen <- function ( g ) {
 #'   attached to generated data.
 #'
 #' @examples
-#' To create a matrix
+#' # To create a matrix
 #' gen.structure( vec.of(6, gen.sample(1:30)), dim = 3:2)
 #'
 #' # To create a data frame for testing.
@@ -205,7 +205,7 @@ gen.sample.int <- function ( n ) {
 #'
 #' @examples
 #' gen.unif(0, 1) # a float between 0 and 1
-gen.unif <- function ( from, to, shrink.median = F ) {
+gen.unif <- function ( from, to, shrink.median = T ) {
   gen.shrink(
     towards(qunif(ifelse ( shrink.median, 0.5, 0 ), from, to))
   , gen ( function( size ) { tree ( runif( 1, from, to)) })

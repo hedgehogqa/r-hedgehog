@@ -5,7 +5,7 @@
 \title{Generate a float between the from
 and to the values specified.}
 \usage{
-gen.unif(from, to, shrink.median = F)
+gen.unif(from, to, shrink.median = T)
 }
 \arguments{
 \item{from}{same as from in runif}

@@ -1,60 +1,45 @@
-# R.template
+hedgehog
+========
 
-This is a project template for an R package.
+> Hedgehog will eat all your bugs.
 
-Once you have cloned this project you need to do a global search for "R.template" and replace it with your application name.
+<img src="https://github.com/hedgehogqa/r-hedgehog/raw/master/img/hedgehog-logo.png" width="307" align="right"/>
 
-Then update both DESCRIPTION and project-package.Rd with title, description and author information. Put your library dependencies in DESCRIPTION and import then with import("foo") in NAMESPACE.
+[Hedgehog](http://hedgehog.qa/) is a modern property-based testing
+system in R, in the spirit of QuickCheck. Hedgehog uses integrated
+shrinking, so shrinks obey the invariants of generated values by
+construction.
 
-### Development
+Features
+--------
 
-In R, within this directory, with the devtools package loaded:
+- Available as an easy to use R package with minimal dependencies.
+- Integrated shrinking, shrinks obey invariants by construction.
+- Predicate logic allows easy testing of functional code.
+- Abstract state machine testing (like QuviQ's quickcheck) allows
+  testing of complex object oriented and effectful systems.
 
-    load_all()
+Example
+-------
 
-Loads the package currently under development. This setup to automatically happen each time you start R within that directory (one down from the project root).
+Once imported hedgehog exports all one needs in order to write
+expressive property tests.
 
-### Documenting
-
-The best way to produce documentation is with roxygen. Just add annotations above each function you want to document like the following:
-
+```R
+library( hedgehog )
 ```
- #' @title my_function
- #' @description Describe it here
- #' @param x Describe x
- #' @param y Describe y
- #' @return what it returns
- my_function <- function(x,y) { ...
+
+Once you have loaded the package, one can write a simple property
+
+```R
+property("Reverse of Reverse is Identity",
+  forall ( vec( gen.sample(1:100)) , function(x) {
+    identical ( rev(rev(x)), x )
+  })
+)
 ```
-
-Then to produce the .Rd documentation files, call `document()`
-
-### Testing
-In R, within the (renamed) R.templates directory:
-
-    test()
-
-### Building
-
-Run from bash in the root directory:
-    R CMD build .
-
-This produces a tarball.
-
-### Checking package
-
-After, building run:
-
-    R CMD check <package tarball>
-
-It will give you a list of things to fix. Ignore the warning related to licencing.
-
-### Installing locally
-
-Run:
-
-    R CMD install <package name>
-
-### Packaging up
-
-To make it publish, edit the master.toml file and set PUBLISH to true.
+Which will run the test and return `FALSE` if there are any errors.
+```
+--- Reverse of Reverse is Identity ---
+Passed after 100 tests
+```
