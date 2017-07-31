@@ -1,5 +1,11 @@
 
 #' A symbolic value.
+#'
+#' These values are the outputs of a computation
+#' during the calculations' construction, and
+#' allow a value to use the results of a previous
+#' function.
+#'
 #' Really, this is just an integer, which we use
 #' as a name for a value which will exist later
 #' in the computation
@@ -7,9 +13,17 @@ symbolic <- function(x) {
   structure (x, class = c(class(x), "symbolic"))
 }
 
-#' A concrete value resulting from a real computations
-concrete <- function(x) {
-  structure (x, class = c(class(x), "concrete"))
+print.symbolic <- function ( var ) {
+  cat ( paste( var, "(symbolic)"  ))
+}
+
+# Pretty printer for an action (this is what will)
+# be shown during shrinking.
+print.action <- function ( action ) {
+  cat ( action$title, "\n" )
+  cat ( "inputs:\n" )
+  print ( action$input )
+  cat ( paste ( "output variable:", action$output, "\n" ))
 }
 
 #' Build a commmand
@@ -17,7 +31,7 @@ concrete <- function(x) {
 #' @export
 #'
 #' @param gen A generator which provides random arguments
-#'   for a command, given the current (symbolic) state.
+#'   for the command, given the current (symbolic) state.
 #'   If nothing can be done with the current state, one
 #'   should preclude the situation with a requires and
 #'   return NULL. Otherwise, it should be a list of
@@ -26,20 +40,28 @@ concrete <- function(x) {
 #' @param execute A function from the concrete input,
 #'   which executes the true function and returns
 #'   concrete output.
+#'   Function takes the (possibly named) arguments given
+#'   by the generator.
 #' @param require A function from the current (symbolic)
 #'   state to a bool, indicating if action is currently
-#'   applicable
+#'   applicable.
+#'   Function also takes the (possibly named) arguments
+#'   given by the generator (this is mostly used in
+#'   shrinking, to ensure after a shrink it's still ok).
 #' @param update A function from state to state, which is
 #'   polymorphic over symbolic and concrete inputs and
-#'   outputs ( as it is used in both action generation and
-#'   command execution ).
+#'   outputs (as it is used in both action generation and
+#'   command execution).
+#'   It's critical that one doesn't "inspect" the values
+#'   going into the state for this function.
 #' @param ensure A post-condition for a command that must be
 #'   verified for the command to be considered a success.
-command  <- function( generator
+command  <- function( title
+                    , generator
                     , execute
-                    , require = function(state, input) T
-                    , update  = function(state, input, output) state
-                    , ensure  = function(state, input, output) T
+                    , require = function(state, ...) T
+                    , update  = function(state, output, ...) state
+                    , ensure  = function(state, output, ...) T
                     ) {
   gen_     <- match.fun ( generator )
   execute_ <- match.fun ( execute )
@@ -48,7 +70,8 @@ command  <- function( generator
   ensure_  <- match.fun ( ensure )
   structure (
     list (
-        gen     = gen_
+        title   = title
+      , gen     = gen_
       , execute = execute_
       , require = require_
       , update  = update_
@@ -98,7 +121,8 @@ gen.action <- function ( commands ) { function ( state, counter ) {
       # Check the requires condition make sense.
       # These requires functions are needed to
       # ensure we have a good shrink.
-      if (! command$require( state, input) )
+      require_ <- partial( command$require, state = state )
+      if (! do.call( require_, as.list( input ) ) )
         stop ( "Command generation arguments voilate requirements" )
 
       # Get a variable name we'll use for the output
@@ -107,11 +131,13 @@ gen.action <- function ( commands ) { function ( state, counter ) {
       output   <- symbolic ( counter )
 
       # Build a new state which we can work with
-      state_   <- command$update ( state, input, output )
+      update_  <- partial( command$update, state = state, output = output)
+      state_   <- do.call( update_ , as.list( input ))
 
       # Build the action which can be run.
       action_  <- structure(list (
-          input   = input
+          title   = command$title
+        , input   = input
         , output  = output
         , execute = command$execute
         , require = command$require
@@ -120,7 +146,7 @@ gen.action <- function ( commands ) { function ( state, counter ) {
       ), class = "action")
 
       # Return the new symbolic state and the action to run.
-      list ( state = list(state_, counter + 1), action = action_ )
+      list ( acc = list(state = state_, counter = counter + 1), action = action_ )
     }, command$gen( state ))
   })
 }}
@@ -128,8 +154,10 @@ gen.action <- function ( commands ) { function ( state, counter ) {
 # Returns the actions and it's updates to the state
 # only if they're currently valid.
 check.valid  <- function ( ok, state, action ) {
-  if (action$require ( state, action$input )) {
-    state_   <- action$update ( state, action$input, action$output )
+  require_ <- partial( action$require, state = state )
+  if (do.call( require_, as.list( action$input ) )) {
+    update_ <- partial( action$update, state = state, output = action$output)
+    state_  <- do.call( update_ , as.list( action$input ))
     list ( ok = snoc(ok, action), state = state_ )
   } else {
     list ( ok = ok, state = state )
@@ -152,7 +180,7 @@ gen.actions <- function ( initial.state, commands ) {
   , gen.shrink ( shrink.list,
       gen ( function ( size ) {
         tree.bind( function ( num ) {
-          tree.replicateS ( num, function(x) { gen.action(commands)(x[[1]], x[[2]])$unGen(size) }, list(initial.state, 1))
+          tree.replicateS ( num, function(x) { gen.action(commands)(x$state, x$counter)$unGen(size) }, list(state = initial.state, counter = 1))
         }, gen.sample(1:size)$unGen(size) )
       })
     )
@@ -164,14 +192,18 @@ gen.actions <- function ( initial.state, commands ) {
 #' Executes the action in an environment, ensuring
 #' all postconditions are met.
 execute <- function ( state, env, action ) {
-  input  <- reify( action$input, env )
-  output <- do.call( action$execute, as.list(input) )
-  state_ <- action$update ( state, input, output )
+  input   <- reify( action$input, env )
+  output  <- do.call( action$execute, as.list(input) )
+  update_ <- partial( action$update, state = state, output = output)
+  state_  <- do.call( update_ , as.list( input ))
   env[[action$output]] <- output
+
+  ensure_ <- partial( action$ensure, state = state, output = output)
+  result_ <- do.call( ensure_ , as.list( input ))
 
   list( state = state_
       , environment = env
-      , result = action$ensure(state_,input,output)
+      , result = result_
       )
 }
 
@@ -179,7 +211,7 @@ execute <- function ( state, env, action ) {
 #' that all postconditions hold.
 executeSequential <- function ( initial.state, actions ) {
   final <- Reduce ( function( acc, action ) {
-    if ( acc$result ) {
+    if ( testable_success( as.testable (acc$result ))) {
       execute( acc$state, acc$environment, action )
     } else acc
   }, init = list( state = initial.state, environment = list(), result = T)

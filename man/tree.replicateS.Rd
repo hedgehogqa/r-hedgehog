@@ -2,11 +2,13 @@
 % Please edit documentation in R/tree.R
 \name{tree.replicateS}
 \alias{tree.replicateS}
-\title{Create a tree of a vector from a generator for a value.}
+\title{Create a tree of a vector from a generator for a value.
+carries around a state as well as the generator.}
 \usage{
 tree.replicateS(num, ma, s, ...)
 }
 \description{
 Create a tree of a vector from a generator for a value.
+carries around a state as well as the generator.
 }
 

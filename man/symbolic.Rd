@@ -2,15 +2,17 @@
 % Please edit documentation in R/state.R
 \name{symbolic}
 \alias{symbolic}
-\title{A symbolic value.
-Really, this is just an integer, which we use
-as a name for a value which will exist later
-in the computation}
+\title{A symbolic value.}
 \usage{
 symbolic(x)
 }
 \description{
-A symbolic value.
+These values are the outputs of a computation
+during the calculations' construction, and
+allow a value to use the results of a previous
+function.
+}
+\details{
 Really, this is just an integer, which we use
 as a name for a value which will exist later
 in the computation

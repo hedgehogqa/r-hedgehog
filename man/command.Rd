@@ -4,29 +4,36 @@
 \alias{command}
 \title{Build a commmand}
 \usage{
-command(generator, execute, require = function(state, input) T,
-  update = function(state, input, output) state, ensure = function(state,
-  input, output) T)
+command(title, generator, execute, require = function(state, ...) T,
+  update = function(state, output, ...) state, ensure = function(state,
+  output, ...) T)
 }
 \arguments{
 \item{execute}{A function from the concrete input,
 which executes the true function and returns
-concrete output.}
+concrete output.
+Function takes the (possibly named) arguments given
+by the generator.}
 
 \item{require}{A function from the current (symbolic)
 state to a bool, indicating if action is currently
-applicable}
+applicable.
+Function also takes the (possibly named) arguments
+given by the generator (this is mostly used in
+shrinking, to ensure after a shrink it's still ok).}
 
 \item{update}{A function from state to state, which is
 polymorphic over symbolic and concrete inputs and
-outputs ( as it is used in both action generation and
-command execution ).}
+outputs (as it is used in both action generation and
+command execution).
+It's critical that one doesn't "inspect" the values
+going into the state for this function.}
 
 \item{ensure}{A post-condition for a command that must be
 verified for the command to be considered a success.}
 
 \item{gen}{A generator which provides random arguments
-for a command, given the current (symbolic) state.
+for the command, given the current (symbolic) state.
 If nothing can be done with the current state, one
 should preclude the situation with a requires and
 return NULL. Otherwise, it should be a list of

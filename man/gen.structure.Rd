@@ -24,7 +24,7 @@ as forall, and is flexible, in that any list
 of generators is considered to be a generator.
 }
 \examples{
-To create a matrix
+# To create a matrix
 gen.structure( vec.of(6, gen.sample(1:30)), dim = 3:2)
 
 # To create a data frame for testing.
