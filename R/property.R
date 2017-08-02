@@ -20,6 +20,9 @@ utils::globalVariables(c("hedgehog.internal"))
 #' @param shrink.limit the maximum number of shrinks to
 #'   run when shrinking a value to find the smallest
 #'   counterexample.
+#' @param single.argument whether to pass only one
+#'   to the property, or use do.call to use the list
+#'   generated as individual arguments.
 #'
 #' @importFrom progress progress_bar
 #'
@@ -43,7 +46,7 @@ utils::globalVariables(c("hedgehog.internal"))
 #' # [1] 1 2
 #'
 #' @export
-forall <- function ( generator, property, tests = 100, size = 10, shrink.limit = 1000 ) {
+forall <- function ( generator, property, tests = 100, size = 10, shrink.limit = 1000, single.argument = !(identical(class(generator), "list"))) {
 
   pb <- progress_bar$new(
           format = "  Running tests [:bar] :current of :total",
@@ -57,13 +60,13 @@ forall <- function ( generator, property, tests = 100, size = 10, shrink.limit =
     pb$tick()
 
     # Run the test
-    if ( ! testable_success( run.prop(property, value ))) {
+    if ( ! testable_success( run.prop(property, value, single.argument))) {
       # The test didn't pass. Find the smallest
       # counterexample we can ( by shrinking ).
-      counterexample <- find.smallest( tree, property, shrink.limit, 0 )
+      counterexample <- find.smallest( tree, property, single.argument, shrink.limit, 0, pb )
 
       # Print the message which comes with the counterexample.
-      message <- run.prop( property, counterexample$smallest )
+      message <- run.prop( property, counterexample$smallest, single.argument )
 
       # Print a nice message for the user.
       print ( report ( i, counterexample$shrinks, message, counterexample$smallest ) )
@@ -83,7 +86,7 @@ forall <- function ( generator, property, tests = 100, size = 10, shrink.limit =
   if (exists("hedgehog.internal")) {
     hedgehog.internal$successes <<- hedgehog.internal$successes + 1
   }
-  return(T)
+  invisible(T)
 }
 
 #' Turn a generator into a tree and a list of generators
@@ -115,9 +118,12 @@ unfoldgenerator <- function ( generator , size ) {
 #' @param tree the tree to search through for the smallest
 #'   value which fails the test.
 #' @param property the property which is failing
+#' @param single.argument whether to pass only one
+#'   to the property, or use do.call to use the list
+#'   generated as individual arguments.
 #' @param shrink.limit the limit to how far we will try and shrink
 #' @param shrinks the current number of shrinks
-find.smallest <- function ( tree, property, shrink.limit, shrinks ) {
+find.smallest <- function ( tree, property, single.argument, shrink.limit, shrinks, pb ) {
 
   # The smallest value so far.
   point    <- list ( smallest = tree$root, shrinks = shrinks )
@@ -132,23 +138,35 @@ find.smallest <- function ( tree, property, shrink.limit, shrinks ) {
   # Search the branches of the tree.
   # This is a recursive depth first search, which assumes that no
   # branch in a child will fail if the root doesn't as well.
-  smaller <- Find ( function( child ) { !testable_success( run.prop( property, child$root )) }, children )
+  smaller <- Find ( function( child ) {
+    !testable_success( run.prop( property, child$root, single.argument ))
+  }, children )
 
   # If there was nothing found, the the root must be the smallest
   # for this tree; otherwise, recurse into the child found.
   if (is.null(smaller)) {
     point
   } else {
-    find.smallest( smaller, property, shrink.limit, shrinks + 1 )
+    find.smallest( smaller, property, single.argument, shrink.limit, shrinks + 1, pb )
   }
+}
+
+# Turn the arguments into a list for our function.
+# If the class is *just* list, then we will allow
+# all named or unnamed arguments to be passed to
+# the property.
+argument.list <- function(arguments) {
+ if (identical(class(arguments), "list"))
+    arguments else list( arguments )
 }
 
 #' Run a property (with error handling), and turn it
 #' into a testable.
 #' @param property the property to test
 #' @param arguments the generated arguments to the property.
-run.prop <- function ( property, arguments ) {
-  tryCatch( as.testable ( property(arguments) ),
+run.prop <- function ( property, arguments, single.argument ) {
+  arguments <- if ( single.argument ) list ( arguments ) else arguments
+  tryCatch( as.testable ( do.call( property, arguments) ),
     warning = function(w) as.testable(w),
     error = function(e) as.testable(e))
 }

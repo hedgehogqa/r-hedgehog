@@ -49,6 +49,7 @@ verified for the command to be considered a success.}
 a command structure.
 }
 \description{
-State based testing commands
+This helper function assists one in creating commands
+for state machine testing in hedgehog.
 }
 

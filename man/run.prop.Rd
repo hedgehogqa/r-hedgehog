@@ -5,7 +5,7 @@
 \title{Run a property (with error handling), and turn it
 into a testable.}
 \usage{
-run.prop(property, arguments)
+run.prop(property, arguments, single.argument)
 }
 \arguments{
 \item{property}{the property to test}

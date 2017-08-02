@@ -4,7 +4,8 @@
 \alias{forall}
 \title{Hedgehog property test}
 \usage{
-forall(generator, property, tests = 100, size = 10, shrink.limit = 1000)
+forall(generator, property, tests = 100, size = 10, shrink.limit = 1000,
+  single.argument = !(identical(class(generator), "list")))
 }
 \arguments{
 \item{generator}{a generator or list of generators
@@ -21,6 +22,10 @@ it.}
 \item{shrink.limit}{the maximum number of shrinks to
 run when shrinking a value to find the smallest
 counterexample.}
+
+\item{single.argument}{whether to pass only one
+to the property, or use do.call to use the list
+generated as individual arguments.}
 }
 \description{
 Check a property holds for all generated values.

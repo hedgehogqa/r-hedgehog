@@ -18,7 +18,7 @@ symbolic <- function(var) {
 # When we look at the output, indicate that this
 # value is a name.
 print.symbolic <- function ( var ) {
-  cat ( paste( var, "(symbolic)"  ))
+  cat ( paste( "Var", var, "(symbolic)"  ))
 }
 
 # Pretty printer for an action (this is what will)
@@ -30,7 +30,11 @@ print.action <- function ( action ) {
   cat ( paste ( "output variable:", action$output, "\n" ))
 }
 
+
 #' State based testing commands
+#'
+#' This helper function assists one in creating commands
+#' for state machine testing in hedgehog.
 #'
 #' @export
 #'
@@ -90,18 +94,18 @@ command  <- function( title
   )
 }
 
-#' Reify Structures
-#'
-#' Convert a symbolic structure to a concrete one,
-#' using the provided environment.
-#'
-#' @param x A structure potentially holding symbolic
-#'   variables, which will be replaced with concrete
-#'   values from the environment.
-#' @param env a map from symbolic to concrete
-#'   values.
-#' @return a reified structure holding concrete
-#'   values.
+# Reify Structures
+#
+# Convert a symbolic structure to a concrete one,
+# using the provided environment.
+#
+# @param x A structure potentially holding symbolic
+#   variables, which will be replaced with concrete
+#   values from the environment.
+# @param env a map from symbolic to concrete
+#   values.
+# @return a reified structure holding concrete
+#   values.
 reify <- function( x, env ) {
   if ( inherits( x, "symbolic") ) {
     # We have a single symbolic variable
