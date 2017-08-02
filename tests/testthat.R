@@ -1,4 +1,3 @@
-library(testthat)
 library(hedgehog)
 
-test_check("hedgehog")
+run.tests("hedgehog")

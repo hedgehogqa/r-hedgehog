@@ -7,7 +7,13 @@
 report(tests, shrinks, message, counterexample)
 }
 \arguments{
-\item{g}{A function from size to tree}
+\item{tests}{the test on which the failure occurred}
+
+\item{shrinks}{how many shrinks were performed}
+
+\item{message}{the error message to print}
+
+\item{counterexample}{the smallest counterexample to print}
 }
 \description{
 Constructor for a report.

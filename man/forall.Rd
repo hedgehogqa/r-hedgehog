@@ -4,7 +4,7 @@
 \alias{forall}
 \title{Hedgehog property test}
 \usage{
-forall(generator, property, tests = 100, size = 5, shrink.limit = 1000)
+forall(generator, property, tests = 100, size = 10, shrink.limit = 1000)
 }
 \arguments{
 \item{generator}{a generator or list of generators

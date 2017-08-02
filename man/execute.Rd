@@ -6,6 +6,15 @@
 \usage{
 execute(state, env, action)
 }
+\arguments{
+\item{state}{the current state of the system}
+
+\item{env}{the environment list (list of values
+output so far by the computation.}
+
+\item{action}{the action to execute and check the
+results from.}
+}
 \description{
 Executes the action in an environment, ensuring
 all postconditions are met.

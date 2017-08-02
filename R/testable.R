@@ -4,6 +4,10 @@
 #' a few values for exceptions and warnings.
 #'
 #' Partially derived from testthat (MIT licenced).
+#'
+#' @param type the class of the testable
+#' @param message an optional message
+#' @param srcref a source code reference (unused)
 testable <- function(type, message = NULL, srcref = NULL) {
   type <- match.arg(type, c("success", "failure", "error", "warning"))
 

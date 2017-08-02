@@ -7,12 +7,16 @@
 reify(x, env)
 }
 \arguments{
-\item{x}{A structure holding symbolic variables,
-which will be replaced with concrete values
-from the environment.}
+\item{x}{A structure potentially holding symbolic
+variables, which will be replaced with concrete
+values from the environment.}
 
-\item{environment}{a map from symbolic to concrete
+\item{env}{a map from symbolic to concrete
 values.}
+}
+\value{
+a reified structure holding concrete
+  values.
 }
 \description{
 Convert a symbolic structure to a concrete one,

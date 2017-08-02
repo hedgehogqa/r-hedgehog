@@ -2,13 +2,22 @@
 % Please edit documentation in R/state.R
 \name{executeSequential}
 \alias{executeSequential}
-\title{Execute a set of commands sequentially, ensuring
-that all postconditions hold.}
+\title{Execute a state machine model}
 \usage{
 executeSequential(initial.state, actions)
 }
+\arguments{
+\item{initial.state}{the starting state to
+build from which is appropriate for this
+state machine generator.}
+
+\item{actions}{the list of actions which
+are to be run.}
+}
+\value{
+a testable value.
+}
 \description{
-Execute a set of commands sequentially, ensuring
-that all postconditions hold.
+Executes the list of commands sequentially,
 }
 

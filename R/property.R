@@ -1,3 +1,4 @@
+utils::globalVariables(c("hedgehog.internal"))
 
 #' Hedgehog property test
 #'
@@ -20,6 +21,8 @@
 #'   run when shrinking a value to find the smallest
 #'   counterexample.
 #'
+#' @importFrom progress progress_bar
+#'
 #' @examples
 #' forall (
 #'   list ( a = vec( gen.sample(1:100))
@@ -40,7 +43,7 @@
 #' # [1] 1 2
 #'
 #' @export
-forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 1000 ) {
+forall <- function ( generator, property, tests = 100, size = 10, shrink.limit = 1000 ) {
 
   pb <- progress_bar$new(
           format = "  Running tests [:bar] :current of :total",
@@ -89,6 +92,9 @@ forall <- function ( generator, property, tests = 100, size = 5, shrink.limit = 
 #' as is.
 #' Generators can use the random number generator when
 #' creating their trees.
+#'
+#' @param generator the generator ( or list of generators )
+#' @param size the size parameter to use
 unfoldgenerator <- function ( generator , size ) {
   if (inherits( generator,"gen")) {
     # A generator can be run and turned into
@@ -103,55 +109,15 @@ unfoldgenerator <- function ( generator , size ) {
   }
 }
 
-#' Recursively turn lists of trees into a single tree.
-tree.traverse <- function ( trees ) {
-  if (inherits( trees,"tree")) {
-    # We have a single tree.
-    # This is all we need so we can return it.
-    trees
-  } else if ( is.list( trees ) ) {
-    # Lists can contain trees.
-    # Collect information about the list (its attributes).
-    info    <- attributes(trees)
-
-    # Recursively call tree.traverse on the list so all
-    # values in the list are now actually trees.
-    lowered <- lapply ( trees, tree.traverse )
-
-    # Reduce the list of trees into a single tree by folding
-    # over it with a bind (this is essentially a foldM).
-    # with an list accumulating in the fold.
-    #
-    # /Note/ This may change to allow *applicative* shrinking.
-    merged  <- Reduce ( function (acc, t) {
-      tree.bind (
-        function(as) {
-          tree.bind (
-            function(a)
-              tree( unlist( list ( as, list(a) ) , recursive = F))
-            , t
-          )
-        }
-      , acc )
-    }, lowered, tree (list()) )
-
-    # The original list had structure to it (class, attributes...).
-    # We have made a tree containing lists of the same shape, but
-    # they don't currently have the attributes of the original.
-    # We can made the "structure" the same by mapping the list's
-    # attributes to all values in the tree.
-    tree.map( function(m) { attributes(m) <- info; m }, merged )
-  } else {
-    # The value is not a list or a tree.
-    # We can embed it into a pure tree (one having no shrinks).
-    # and return it.
-    tree ( trees )
-  }
-}
-
 #' Search through the trees to find the smallest value we can
 #' which still fails the test.
-find.smallest <- function ( tree, property, shrink.limit, shrinks, pb = NULL ) {
+#'
+#' @param tree the tree to search through for the smallest
+#'   value which fails the test.
+#' @param property the property which is failing
+#' @param shrink.limit the limit to how far we will try and shrink
+#' @param shrinks the current number of shrinks
+find.smallest <- function ( tree, property, shrink.limit, shrinks ) {
 
   # The smallest value so far.
   point    <- list ( smallest = tree$root, shrinks = shrinks )
@@ -173,12 +139,14 @@ find.smallest <- function ( tree, property, shrink.limit, shrinks, pb = NULL ) {
   if (is.null(smaller)) {
     point
   } else {
-    find.smallest( smaller, property, shrink.limit, shrinks + 1, pb )
+    find.smallest( smaller, property, shrink.limit, shrinks + 1 )
   }
 }
 
 #' Run a property (with error handling), and turn it
 #' into a testable.
+#' @param property the property to test
+#' @param arguments the generated arguments to the property.
 run.prop <- function ( property, arguments ) {
   tryCatch( as.testable ( property(arguments) ),
     warning = function(w) as.testable(w),

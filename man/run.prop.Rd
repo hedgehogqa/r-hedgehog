@@ -7,6 +7,11 @@ into a testable.}
 \usage{
 run.prop(property, arguments)
 }
+\arguments{
+\item{property}{the property to test}
+
+\item{arguments}{the generated arguments to the property.}
+}
 \description{
 Run a property (with error handling), and turn it
 into a testable.
