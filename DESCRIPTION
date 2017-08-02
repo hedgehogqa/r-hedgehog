@@ -12,7 +12,7 @@ Description: Hedgehog is a modern property-based
   construction.
 License: MIT + file LICENCE
 Imports:
-Depends: parallel, progress, purrr, utils
+Depends: progress, purrr, utils
 Suggests: R6, knitr, rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1

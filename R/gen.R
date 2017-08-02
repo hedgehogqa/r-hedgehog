@@ -355,3 +355,36 @@ gen.list <- function ( generator, from = 1, to = NULL )
       })
     })
 
+#' Generator Conditioning
+#'
+#' Require a generator to hold some property
+#'
+#' This function will fail with stop if the discard
+#' limit is passed.
+#'
+#' In general, one should try to avoid using this
+#' function, and instead create appropriate values for
+#' one's tests by construction.
+#'
+#' @export
+#'
+#' @param requires a predicate which must hold before
+#'   the generated value is used.
+#' @param generator a generator used for list elements
+#' @param discard.limit the maximum number of predicate
+#'   failures on a single example before this generator
+#'   fails. This should be at most 100, as beyond this
+#'   level, R may detect the generator as an infinite
+#'   loop and kill it.
+gen.ensure <- function ( requires, generator, discard.limit = 100 ) {
+  if ( discard.limit <= 0 )
+    stop ( "Discard limit reached in ensure" )
+  gen.with (generator,
+    function(v) {
+      if (requires(v)) {
+        gen.pure(v)
+      } else {
+        gen.ensure ( requires, generator, discard.limit = discard.limit - 1)
+      }
+    })
+}
