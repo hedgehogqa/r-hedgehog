@@ -7,9 +7,9 @@
 property(desc, prop)
 }
 \arguments{
-\item{A}{short textual description of the property}
+\item{desc}{a short textual description of the property}
 
-\item{A}{property (specified with forall).}
+\item{prop}{a property (specified with forall).}
 }
 \description{
 Give a description to a property

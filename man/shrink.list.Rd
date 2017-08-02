@@ -6,19 +6,10 @@
 \usage{
 shrink.list(xs)
 }
-\description{
->>> list [1,2,3]
-[[],[2,3],[1,3],[1,2]]
+\arguments{
+\item{xs}{the list to shrink}
 }
-\details{
->>> list "abcd"
-["","cd","ab","bcd","acd","abd","abc"]
-
-/Note we always try the empty list first, as that is the optimal shrink./
-list :: [a] -> [[a]]
-list xs =
- concatMap
-   (\k -> removes k xs)
-   (halves $ length xs)
+\description{
+Shrink a list by edging towards the empty list.
 }
 

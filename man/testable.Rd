@@ -10,6 +10,12 @@ testable(type, message = NULL, srcref = NULL)
 is.testable(x)
 }
 \arguments{
+\item{type}{the class of the testable}
+
+\item{message}{an optional message}
+
+\item{srcref}{a source code reference (unused)}
+
 \item{x}{object to test for class membership}
 }
 \description{

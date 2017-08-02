@@ -2,11 +2,26 @@
 % Please edit documentation in R/state.R
 \name{gen.action}
 \alias{gen.action}
-\title{Generate an action from a set of commands}
+\title{Generator for actions}
 \usage{
-gen.action(commands)
+gen.action(commands, state, counter)
+}
+\arguments{
+\item{commands}{the list of commands which
+we can select choose from. Only commands
+appropriate for the state will actually be
+selected.}
+
+\item{state}{the current state of the system}
+
+\item{counter}{the output variable this action
+can write to.}
+}
+\value{
+a list, acc is the new state and counter
+  as well as the action generated.
 }
 \description{
-Generate an action from a set of commands
+Generator for actions
 }
 

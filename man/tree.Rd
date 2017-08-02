@@ -2,11 +2,53 @@
 % Please edit documentation in R/tree.R
 \name{tree}
 \alias{tree}
-\title{A lazy, purely functional rose tree}
+\alias{tree.bind}
+\alias{tree.expand}
+\alias{tree.map}
+\alias{tree.traverse}
+\alias{tree.unfold}
+\alias{tree.unfoldForest}
+\title{Lazy rose trees}
 \usage{
 tree(root, children_ = list())
+
+tree.map(f, x)
+
+tree.bind(f, x)
+
+tree.expand(shrink, x)
+
+tree.unfold(shrink, a)
+
+tree.unfoldForest(shrink, a)
+
+tree.traverse(trees)
+}
+\arguments{
+\item{root}{the root of the rose tree}
+
+\item{children_}{a list of children for the tree.}
+
+\item{f}{a function for mapping or binding}
+
+\item{x}{a tree to map or bind over}
+
+\item{shrink}{a shrinking function}
+
+\item{a}{a value to unfold from}
+
+\item{trees}{a tree, or list or structure potentially
+containing trees to turn into a tree of
+said structure.}
 }
 \description{
-A lazy, purely functional rose tree
+A rose tree is a type of multibranch tree.
+This is hedgehog's internal implementation
+of a lazy rose tree.
+}
+\details{
+In general, one should not
+need to use this, as the combinators in the
+gen module should be expressive enough.
 }
 

@@ -11,6 +11,11 @@ creating their trees.}
 \usage{
 unfoldgenerator(generator, size)
 }
+\arguments{
+\item{generator}{the generator ( or list of generators )}
+
+\item{size}{the size parameter to use}
+}
 \description{
 Turn a generator into a tree and a list of generators
 into a list of trees.

@@ -46,9 +46,16 @@ NULL
 #' @export
 gen.with <- function ( g, f ) {
   gen ( function ( size ) {
-    trees  <- unfoldgenerator ( g, size )
-    tree   <- tree.traverse ( trees )
-    tree.bind ( function(x) { f(x)$unGen(size) }, tree )
+    trees     <- unfoldgenerator ( g, size )
+    tree      <- tree.traverse ( trees )
+    tree.seed <- get(".Random.seed", .GlobalEnv)
+    tree.bind ( function(x) {
+      tmp.seed <- get(".Random.seed", .GlobalEnv)
+      assign(".Randon.seed", tree.seed, .GlobalEnv)
+      res <- f(x)$unGen(size)
+      assign(".Randon.seed", tmp.seed, .GlobalEnv)
+      res
+    }, tree )
   })
 }
 
@@ -125,8 +132,8 @@ print.gen <- function ( g ) {
 #'   , row.names = c("1", "2", "3", "4" ))
 gen.structure <- function ( x, ... ) {
   gen ( function( size ) {
-    trees  <- unfoldgenerator ( x, size )
-    tree   <- tree.traverse ( trees )
+    trees     <- unfoldgenerator ( x, size )
+    tree      <- tree.traverse ( trees )
     tree.map( function(m) { attributes(m) <- list(...); m }, tree )
   })
 }
@@ -185,7 +192,7 @@ gen.sample <- function ( x ) {
 #' @rdname gen-sample
 #' @export
 gen.sample.int <- function ( n ) {
-  gen.shrink( towards(1), gen ( function( size ) { tree ( sample.int(n, 1) ) }))
+  gen.shrink( shrink.towards(1), gen ( function( size ) { tree ( sample.int(n, 1) ) }))
 }
 
 #' Generate a float between the from
@@ -207,7 +214,7 @@ gen.sample.int <- function ( n ) {
 #' gen.unif(0, 1) # a float between 0 and 1
 gen.unif <- function ( from, to, shrink.median = T ) {
   gen.shrink(
-    towards(qunif(ifelse ( shrink.median, 0.5, 0 ), from, to))
+    shrink.atowards(qunif(ifelse ( shrink.median, 0.5, 0 ), from, to))
   , gen ( function( size ) { tree ( runif( 1, from, to)) })
   )
 }
@@ -224,7 +231,7 @@ gen.unif <- function ( from, to, shrink.median = T ) {
 #' @param scale same as scale in rgamma
 gen.gamma <- function ( shape, rate = 1, scale = 1/rate) {
   gen.shrink (
-    towards(qgamma(0.5, shape, rate ))
+    shrink.towards(qgamma(0.5, shape, rate ))
   , gen ( function( size ) { tree ( rgamma( 1, shape, rate )) })
   )
 }
@@ -241,7 +248,7 @@ gen.gamma <- function ( shape, rate = 1, scale = 1/rate) {
 #' @param ncp same as ncp in rbeta
 gen.beta <- function ( shape1, shape2, ncp = 0 ) {
   gen.shrink (
-    towards(qbeta(0.5, shape1, shape2, ncp ))
+    shrink.towards(qbeta(0.5, shape1, shape2, ncp ))
   , gen ( function( size ) { tree ( rbeta( 1, shape1, shape2, ncp )) })
   )
 }
@@ -260,6 +267,23 @@ gen.beta <- function ( shape1, shape2, ncp = 0 ) {
 gen.shrink <- function ( shrinker, g ) {
   gen ( function( size )
     tree.expand ( shrinker, g$unGen(size) )
+  )
+}
+
+#' Helper to create a generator with a
+#' shrink function.
+#'
+#' shrinker takes an 'a and returns a vector of 'a.
+#'
+#' @export
+#'
+#' @param shrinker a function takes an 'a and
+#'   returning a vector of 'a.
+#' @param g a generator we wish to add shrinking
+#'   to
+gen.no.shrink <- function ( shrinker, g ) {
+  gen ( function( size )
+    tree ( g$unGen(size)$root )
   )
 }
 

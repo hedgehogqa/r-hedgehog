@@ -4,7 +4,10 @@
 \alias{symbolic}
 \title{A symbolic value.}
 \usage{
-symbolic(x)
+symbolic(var)
+}
+\arguments{
+\item{var}{the integer output indicator.}
 }
 \description{
 These values are the outputs of a computation

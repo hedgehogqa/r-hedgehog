@@ -1,5 +1,36 @@
 
-#' A lazy, purely functional rose tree
+#' Lazy rose trees
+#'
+#' A rose tree is a type of multibranch tree.
+#' This is hedgehog's internal implementation
+#' of a lazy rose tree.
+#'
+#' In general, one should not
+#' need to use this, as the combinators in the
+#' gen module should be expressive enough.
+#'
+#' @param root
+#'   the root of the rose tree
+#' @param children_
+#'   a list of children for the tree.
+#' @param f
+#'   a function for mapping or binding
+#' @param x
+#'   a tree to map or bind over
+#' @param a
+#'   a value to unfold from
+#' @param shrink
+#'   a shrinking function
+#' @param trees
+#'   a tree, or list or structure potentially
+#'   containing trees to turn into a tree of
+#'   said structure.
+#'
+#' @name tree
+NULL
+
+#' @rdname tree
+#' @export
 tree <- function( root, children_ = list() ) {
   eval.children <- NULL
   structure(
@@ -13,21 +44,23 @@ tree <- function( root, children_ = list() ) {
     ), class = "tree")
 }
 
-#' Map a function over values of the tree
+#' @rdname tree
+#' @export
 tree.map <- function ( f, x ) {
   y <- f ( x$root )
   tree (
-    root     = y
-  , children = lapply( x$children(), function( xx ) tree.map(f,xx) )
+    root      = y
+  , children_ = lapply( x$children(), function( xx ) tree.map(f,xx) )
   )
 }
 
-#' Bind a function over values of the tree
+#' @rdname tree
+#' @export
 tree.bind <- function ( f, x ) {
   y <- f ( x$root )
   tree (
-    root     = y$root
-  , children = unlist(
+    root      = y$root
+  , children_ = unlist(
                 list(
                   lapply( x$children(), function(xx) tree.bind(f, xx) )
                   , y$children()
@@ -36,43 +69,113 @@ tree.bind <- function ( f, x ) {
   )
 }
 
-#' Expand a tree with a shrinking function
-tree.expand <- function ( shrink, t ) {
-  node         <- t$root
-  children     <- t$children
+#' @rdname tree
+#' @export
+tree.expand <- function ( shrink, x ) {
+  node         <- x$root
+  children     <- x$children
   tree ( root = node,
-         children = unlist(
-                      list (
-                        lapply( children(), function( child ) tree.expand( shrink, child ) )
-                      , tree.unfoldForest( shrink, node )
-                      ), recursive = F
-                    )
+         children_ = unlist(
+                       list (
+                         lapply( children(), function( child ) tree.expand( shrink, child ) )
+                       , tree.unfoldForest( shrink, node )
+                       ), recursive = F
+                     )
        )
 }
 
-#' Generate a tree while there are values in the shrink.
+#' @rdname tree
+#' @export
 tree.unfold <- function ( shrink, a ) {
   tree (
     root     = a
-  , children = tree.unfoldForest( shrink, a )
+  , children_ = tree.unfoldForest( shrink, a )
   )
 }
 
-#' Generate a set of tree while there are values in the shrink.
-tree.unfoldForest <- function ( shrink, x ) {
-  lapply ( shrink ( x ), function( y ) { tree.unfold ( shrink, y )  } )
+#' @rdname tree
+#' @export
+tree.unfoldForest <- function ( shrink, a ) {
+  lapply ( shrink ( a ), function( y ) { tree.unfold ( shrink, y )  } )
 }
 
-#' Create a tree of a vector from a generator for a value.
+#' @rdname tree
+#' @export
+tree.traverse <- function ( trees ) {
+  if (inherits( trees,"tree")) {
+    # We have a single tree.
+    # This is all we need so we can return it.
+    trees
+  } else if ( is.list( trees ) ) {
+    # Lists can contain trees.
+    # Collect information about the list (its attributes).
+    info    <- attributes(trees)
+
+    # Recursively call tree.traverse on the list so all
+    # values in the list are now actually trees.
+    lowered <- lapply ( trees, tree.traverse )
+
+    # Reduce the list of trees into a single tree by folding
+    # over it with a bind (this is essentially a foldM).
+    # with an list accumulating in the fold.
+    #
+    # /Note/ This may change to allow *applicative* shrinking.
+    merged  <- Reduce ( function (acc, t) {
+      tree.bind (
+        function(as) {
+          tree.bind (
+            function(a)
+              tree( unlist( list ( as, list(a) ) , recursive = F))
+            , t
+          )
+        }
+      , acc )
+    }, lowered, tree (list()) )
+
+    # The original list had structure to it (class, attributes...).
+    # We have made a tree containing lists of the same shape, but
+    # they don't currently have the attributes of the original.
+    # We can made the "structure" the same by mapping the list's
+    # attributes to all values in the tree.
+    tree.map( function(m) { attributes(m) <- info; m }, merged )
+  } else {
+    # The value is not a list or a tree.
+    # We can embed it into a pure tree (one having no shrinks).
+    # and return it.
+    tree ( trees )
+  }
+}
+
+#' Creating trees of lists
+#'
+#' Build a tree of a list, potentially
+#' keeping hold of an internal state.
+#'
+#' @param num
+#'   the length of the list in the tree
+#' @param ma
+#'   a function which (randomly) creates
+#'   new tree to add to the list
+#' @param s
+#'   a state used when replicating to
+#'   keep track of.
+#' @param ...
+#'   extra arguments to pass to the tree
+#'   generating function
+#'
+#' @name tree.replicate
+NULL
+
+#' @rdname tree.replicate
+#' @export
 tree.replicateM <- function ( num, ma, ...) {
   if ( num <= 0) {
     tree ( list() )
   } else {
     tree.bind (
       function(a) {
-        tree.bind (
-          function(as)
-            tree( cons(a, as ))
+        tree.map (
+            function(as) cons(a, as)
           , tree.replicateM ( num - 1, ma )
         )
       }
@@ -80,17 +183,16 @@ tree.replicateM <- function ( num, ma, ...) {
   }
 }
 
-#' Create a tree of a vector from a generator for a value.
-#' carries around a state as well as the generator.
+#' @rdname tree.replicate
+#' @export
 tree.replicateS <- function ( num, ma, s, ...) {
   if ( num <= 0) {
     tree ( list() )
   } else {
     tree.bind (
       function(a) {
-        tree.bind (
-          function(as)
-            tree( cons(a[[2]], as ))
+        tree.map (
+            function(as) cons(a[[2]], as )
           , tree.replicateS ( num - 1, ma, a[[1]], ... )
         )
       }

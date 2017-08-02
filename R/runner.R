@@ -41,8 +41,8 @@ run.tests <- function(path, pattern = "\\.[rR]$") {
 #'
 #' Give a description to a property
 #'
-#' @param A short textual description of the property
-#' @param A property (specified with forall).
+#' @param desc a short textual description of the property
+#' @param prop a property (specified with forall).
 #'
 #' @export
 property <- function(desc, prop) {
