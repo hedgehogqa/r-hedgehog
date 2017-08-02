@@ -1,14 +1,11 @@
-#' Constructor for a generator.
+#' Generators
 #'
-#' We're using R's global random number gen.
-#'
-#' A gen is essentially a function which takes
-#' a size parameter and returns a lazy tree.
-gen <- function ( x ) {
-  structure ( list ( unGen = x ), class = "gen" )
-}
-
-#' Generator Monad
+#' A Hedgehog generator is a function, which, using R's
+#' random seed, will build a lazy rose tree given a size
+#' parameter, which represent a value to test, as well
+#' as possible shrinks to try in the event of a failure.
+#' Usually, one should compose the provided generators
+#' instead of dealing with the gen contructor themselves.
 #'
 #' Hedgehog generators are functors and monads, allowing
 #' one to map over them and use their results to create
@@ -17,30 +14,43 @@ gen <- function ( x ) {
 #' A generator can use R's random seed when constructing
 #' its value, but all shrinks should be deterministic.
 #'
-#' Generator's are functors and monads, meaning that one
-#' can take the output of a generator and create a new
-#' generator depending on the result.
+#' In general, functions which accept a generator can also
+#' be provided with a list of generators nested arbitrarily.
 #'
-#' @param f a function from a value to a generator.
-#' @param m a function to apply to values in the generator
-#' @param g a generator to map or bind over
-#' @param x a value to use as a generator
+#'
+#' @param f
+#'   a function from a value to new generator, used to
+#'   build new generators monadically from a generator's
+#'   output
+#' @param m
+#'   a function to apply to values produced the generator
+#' @param g
+#'   a generator to map or bind over
+#' @param x
+#'   a value to use as a generator
+#' @param t
+#'   a function producing a tree from a size parameter
 #'
 #' @examples
 #' # To create a matrix
-#' gen.map( function(x) { matrix(x, ncol=3) }, vec.of(6, gen.sample(1:30)) )
+#' gen.map( function(x) { matrix(x, ncol=3) }, gen.c.of(6, gen.sample(1:30)) )
 #'
 #' # Generating a vector whose length is defined by a generator
-#' g <- gen.with( gen.sample(2:100), function(x) vec.of( x, gen.sample(1:10)))
+#' g <- gen.with( gen.sample(2:100), function(x) gen.c.of( x, gen.sample(1:10)))
 #' gen.example ( g )
 #' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
 #'
 #' # Same as above, as @bind@ is @with@ with arguments flipped.
-#' g <- gen.bind( function(x) vec.of( x, gen.sample(1:10)), gen.sample(2:100))
+#' g <- gen.bind( function(x) gen.c.of( x, gen.sample(1:10)), gen.sample(2:100))
 #' gen.example ( g )
 #' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
 #' @name gen-monad
 NULL
+
+#' @rdname gen-monad
+gen <- function ( t ) {
+  structure ( list ( unGen = t ), class = "gen" )
+}
 
 #' @rdname gen-monad
 #' @export
@@ -48,13 +58,9 @@ gen.with <- function ( g, f ) {
   gen ( function ( size ) {
     trees     <- unfoldgenerator ( g, size )
     tree      <- tree.traverse ( trees )
-    tree.seed <- get(".Random.seed", .GlobalEnv)
     tree.bind ( function(x) {
-      tmp.seed <- get(".Random.seed", .GlobalEnv)
-      assign(".Randon.seed", tree.seed, .GlobalEnv)
-      res <- f(x)$unGen(size)
-      assign(".Randon.seed", tmp.seed, .GlobalEnv)
-      res
+      new <- unfoldgenerator (f(x), size)
+      tree.traverse ( new )
     }, tree )
   })
 }
@@ -88,17 +94,20 @@ gen.map <- function ( m, g ) {
 gen.example <- function ( g, size = 5 ) {
   trees  <- unfoldgenerator ( g, size )
   tree   <- tree.traverse ( trees )
-  tree$root
+  tree
 }
 
 #' Print information about a generator.
 #' @param g A generator
 print.gen <- function ( g ) {
+  example <- gen.example ( g )
   cat( "Hedgehog generator:\n" )
   cat( "A generator is a function which produces random trees\n" )
   cat( "using a size parameter to scale it.\n\n" )
   cat( "Example:\n" )
-  print ( gen.example ( g ))
+  print ( example$root )
+  cat( "Shrinks:\n" )
+  lapply ( example$children(), function ( c ) print( c$root ))
 }
 
 #' Generate a structure
@@ -119,24 +128,19 @@ print.gen <- function ( g ) {
 #'
 #' @examples
 #' # To create a matrix
-#' gen.structure( vec.of(6, gen.sample(1:30)), dim = 3:2)
+#' gen.structure( gen.c.of(6, gen.sample(1:30)), dim = 3:2)
 #'
 #' # To create a data frame for testing.
 #' gen.structure (
-#'   list ( vec.of(4, gen.sample(2:10))
-#'        , vec.of(4, gen.sample(2:10))
+#'   list ( gen.c.of(4, gen.sample(2:10))
+#'        , gen.c.of(4, gen.sample(2:10))
 #'        , c('a', 'b', 'c', 'd')
 #'        )
 #'   , names = c("a","b", "constant")
 #'   , class = "data.frame"
 #'   , row.names = c("1", "2", "3", "4" ))
-gen.structure <- function ( x, ... ) {
-  gen ( function( size ) {
-    trees     <- unfoldgenerator ( x, size )
-    tree      <- tree.traverse ( trees )
-    tree.map( function(m) { attributes(m) <- list(...); m }, tree )
-  })
-}
+gen.structure <- function ( x, ... )
+  gen.map ( function(m) { attributes(m) <- list(...); m }, x )
 
 #' Sized generator creation
 #'
@@ -214,7 +218,7 @@ gen.sample.int <- function ( n ) {
 #' gen.unif(0, 1) # a float between 0 and 1
 gen.unif <- function ( from, to, shrink.median = T ) {
   gen.shrink(
-    shrink.atowards(qunif(ifelse ( shrink.median, 0.5, 0 ), from, to))
+    shrink.towards(qunif(ifelse ( shrink.median, 0.5, 0 ), from, to))
   , gen ( function( size ) { tree ( runif( 1, from, to)) })
   )
 }
@@ -266,25 +270,23 @@ gen.beta <- function ( shape1, shape2, ncp = 0 ) {
 #'   to
 gen.shrink <- function ( shrinker, g ) {
   gen ( function( size )
-    tree.expand ( shrinker, g$unGen(size) )
+    tree.expand ( shrinker
+                , tree.traverse(unfoldgenerator(g, size)))
   )
 }
 
-#' Helper to create a generator with a
-#' shrink function.
-#'
-#' shrinker takes an 'a and returns a vector of 'a.
+#' Stop a generator from shrinking
 #'
 #' @export
 #'
-#' @param shrinker a function takes an 'a and
-#'   returning a vector of 'a.
-#' @param g a generator we wish to add shrinking
-#'   to
-gen.no.shrink <- function ( shrinker, g ) {
-  gen ( function( size )
-    tree ( g$unGen(size)$root )
-  )
+#' @param g a generator we wish to remove shrinking
+#'   from
+gen.no.shrink <- function ( g ) {
+  gen ( function( size ) {
+    ts <- unfoldgenerator(g, size)
+    t  <- tree.traverse( ts )
+    tree ( t$root )
+  })
 }
 
 #' Generate a vector of primitive values
@@ -292,10 +294,13 @@ gen.no.shrink <- function ( shrinker, g ) {
 #'
 #' @export
 #'
-#' @param number length of vector to generate
 #' @param g a generator used for vector elements
-vec <- function ( g ) {
-  gen.map ( unlist, gen.list(g) )
+#' @param from minimum length of the list of
+#'   elements
+#' @param to maximum length of the list of
+#'   elements ( defaults to size if NULL )
+gen.c <- function ( g, from = 1, to = NULL  ) {
+  gen.map ( unlist, gen.list(g, from, to) )
 }
 
 #' Generate a vector of primitive values
@@ -305,7 +310,7 @@ vec <- function ( g ) {
 #'
 #' @param number length of vector to generate
 #' @param g a generator used for vector elements
-vec.of <- function ( x, g ) {
+gen.c.of <- function ( x, g ) {
   gen.map ( unlist, gen.list.of(x, g) )
 }
 
@@ -330,13 +335,23 @@ gen.list.of <- function ( number, generator ) {
 #' @export
 #'
 #' @param g a generator used for list elements
-gen.list <- function ( generator ) {
-  gen ( function ( size ) {
-    tree.bind( function ( num ) {
-      tree.replicateM ( num, function() {
-        trees  <- unfoldgenerator (generator, size)
-        tree.traverse( trees )
+#' @param from minimum length of the list of
+#'   elements
+#' @param to maximum length of the list of
+#'   elements ( defaults to size if NULL )
+gen.list <- function ( generator, from = 1, to = NULL )
+  gen.sized ( function ( size ) {
+    if (is.null(to))
+      to <- size
+    gen.with (
+      gen.sample(from:to)
+    , function ( num ) {
+        shrinker <- function ( as )
+          Filter( function(ls) length(ls) >= from, shrink.list(as))
+
+        gen.shrink ( shrinker,
+          gen.list.of( num, generator )
+        )
       })
-    }, gen.sample(1:size)$unGen(size) )
-  })
-}
+    })
+

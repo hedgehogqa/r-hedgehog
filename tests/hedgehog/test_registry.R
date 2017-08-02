@@ -44,26 +44,33 @@ write <- command ( "Write",
       !is.null ( Find( function( proc ) { proc$pid == pid } , state ) )
   , execute = function( pid, val ) grefs$writeRef( pid, val )
   , update  = function( state, output, pid, val )
-      lapply( state, function(proc) if (proc$pid == pid) list(pid = proc$pid, val = val) else proc)
+      lapply( state, function(proc)
+        if (proc$pid == pid) list(pid = proc$pid, val = val) else proc
+      )
   )
 
-
-inc <- command ( "Inc",
+# One can also not use the helper function "command"
+# and write the function as a list.
+inc <- command ( title = "Inc",
     generator = function( state ) {
       if ( length(state) == 0 )
         return(NULL)
       list (
         pid = gen.map( function(i) i$pid, gen.sample( state ))
       )}
+
   , require = function( state, pid )
       !is.null ( Find( function( proc ) { proc$pid == pid } , state ) )
+
   , execute = function( pid ) {
-      val <- grefs$readRef(pid)
-      grefs$writeRef( pid, val + 1 )
-    }
-  , update  = function( state, output, pid )
-      lapply( state, function(proc) if (proc$pid == pid) list(pid = proc$pid, val = proc$val + 1) else proc)
-  )
+        val <- grefs$readRef(pid)
+        grefs$writeRef( pid, val + 1 )
+      }
+  , update = function( state, output, pid )
+      lapply( state, function(proc)
+        if (proc$pid == pid) list(pid = proc$pid, val = proc$val + 1) else proc
+      )
+)
 
 
 # Initial state
@@ -108,5 +115,5 @@ snoc <- function (xs, x) {
 
 forall( gen.actions ( initialstate, list(new, read, write, inc) ), function( actions ) {
     grefs$reset()
-    executeSequential( initialstate, actions)
+    executeSequential( initialstate, actions )
   })
