@@ -8,7 +8,7 @@
 #'
 #' Really, this is just an integer, which we use
 #' as a name for a value which will exist later
-#' in the computation
+#' in the computation.
 #'
 #' @param var the integer output indicator.
 symbolic <- function(var) {
@@ -18,7 +18,7 @@ symbolic <- function(var) {
 # When we look at the output, indicate that this
 # value is a name.
 print.symbolic <- function ( var ) {
-  cat ( paste( "Var", var, "(symbolic)"  ))
+  cat ( paste( "Var", var, "(symbolic)" ))
 }
 
 # Pretty printer for an action (this is what will)
@@ -64,8 +64,8 @@ print.action <- function ( action ) {
 #'   polymorphic over symbolic and concrete inputs and
 #'   outputs (as it is used in both action generation and
 #'   command execution).
-#'   It's critical that one doesn't "inspect" the values
-#'   going into the state for this function.
+#'   It's critical that one doesn't "inspect" the output
+#'   and input values when writing this function.
 #' @param ensure A post-condition for a command that must be
 #'   verified for the command to be considered a success.
 #' @return a command structure.
@@ -94,9 +94,9 @@ command  <- function( title
   )
 }
 
-# Reify Structures
+# Reify command inputs
 #
-# Convert a symbolic structure to a concrete one,
+# Converts a symbolic structure to a concrete one,
 # using the provided environment.
 #
 # @param x A structure potentially holding symbolic

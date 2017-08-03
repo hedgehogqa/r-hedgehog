@@ -48,13 +48,12 @@
 NULL
 
 #' @rdname gen-monad
-gen <- function ( t ) {
+gen <- function ( t )
   structure ( list ( unGen = t ), class = "gen" )
-}
 
 #' @rdname gen-monad
 #' @export
-gen.with <- function ( g, f ) {
+gen.with <- function ( g, f )
   gen ( function ( size ) {
     trees     <- unfoldgenerator ( g, size )
     tree      <- tree.traverse ( trees )
@@ -63,29 +62,25 @@ gen.with <- function ( g, f ) {
       tree.traverse ( new )
     }, tree )
   })
-}
 
 #' @rdname gen-monad
 #' @export
-gen.bind <- function ( f, g ) {
+gen.bind <- function ( f, g )
   gen.with( g, f )
-}
 
 #' @rdname gen-monad
 #' @export
-gen.pure <- function ( x ) {
+gen.pure <- function ( x )
   gen ( function ( size ) tree ( x ) )
-}
 
 #' @rdname gen-monad
 #' @export
-gen.map <- function ( m, g ) {
+gen.map <- function ( m, g )
   gen ( function ( size ) {
     trees  <- unfoldgenerator ( g, size )
     tree   <- tree.traverse ( trees )
     tree.map ( m, tree )
   })
-}
 
 #' Sample from a generator.
 #' @export
@@ -123,7 +118,7 @@ print.gen <- function ( g ) {
 #'
 #' @export
 #' @param x an object generator which will have various attributes attached to it.
-#' @param ... attributes, specified in ‘tag = value’ form, which will be
+#' @param ... attributes, specified in 'tag = value' form, which will be
 #'   attached to generated data.
 #'
 #' @examples
@@ -140,7 +135,10 @@ print.gen <- function ( g ) {
 #'   , class = "data.frame"
 #'   , row.names = c("1", "2", "3", "4" ))
 gen.structure <- function ( x, ... )
-  gen.map ( function(m) { attributes(m) <- list(...); m }, x )
+  gen.map (
+    function(m) { attributes(m) <- list(...); m }
+  , x
+  )
 
 #' Sized generator creation
 #'
@@ -154,12 +152,11 @@ gen.structure <- function ( x, ... )
 #'
 #' @examples
 #' gen.sized ( function(e) gen.sample(1:e) )
-gen.sized <- function ( f ) {
+gen.sized <- function ( f )
   gen ( function ( size ) {
     trees  <- unfoldgenerator ( f(size), size )
     tree.traverse ( trees )
   })
-}
 
 #' Random Sample Generation
 #'
@@ -183,21 +180,26 @@ NULL
 
 #' @rdname gen-sample
 #' @export
-gen.sample <- function ( x ) {
-  gen.map ( function(i) {
-    if (is.list(x)) {
-      x[[i]]
-    } else {
-      x[i]
+gen.sample <- function ( x )
+  gen.map (
+    function(i) {
+      if (is.list(x)) {
+        x[[i]]
+      } else {
+        x[i]
+      }
     }
-  }, gen.sample.int(length(x)))
-}
+  , gen.sample.int(length(x))
+  )
+
 
 #' @rdname gen-sample
 #' @export
-gen.sample.int <- function ( n ) {
-  gen.shrink( shrink.towards(1), gen ( function( size ) { tree ( sample.int(n, 1) ) }))
-}
+gen.sample.int <- function ( n )
+  gen.shrink (
+    shrink.towards(1)
+  , gen ( function( size ) { tree ( sample.int(n, 1) ) })
+  )
 
 #' Generate a float between the from
 #' and to the values specified.
@@ -216,12 +218,11 @@ gen.sample.int <- function ( n ) {
 #'
 #' @examples
 #' gen.unif(0, 1) # a float between 0 and 1
-gen.unif <- function ( from, to, shrink.median = T ) {
+gen.unif <- function ( from, to, shrink.median = T )
   gen.shrink(
     shrink.towards(qunif(ifelse ( shrink.median, 0.5, 0 ), from, to))
   , gen ( function( size ) { tree ( runif( 1, from, to)) })
   )
-}
 
 #' Generate a float with a gamma distribution
 #'
@@ -233,12 +234,11 @@ gen.unif <- function ( from, to, shrink.median = T ) {
 #' @param shape same as shape in rgamma
 #' @param rate same as rate in rgamma
 #' @param scale same as scale in rgamma
-gen.gamma <- function ( shape, rate = 1, scale = 1/rate) {
+gen.gamma <- function ( shape, rate = 1, scale = 1/rate)
   gen.shrink (
     shrink.towards(qgamma(0.5, shape, rate ))
   , gen ( function( size ) { tree ( rgamma( 1, shape, rate )) })
   )
-}
 
 #' Generate a float with a gamma distribution
 #'
@@ -250,12 +250,11 @@ gen.gamma <- function ( shape, rate = 1, scale = 1/rate) {
 #' @param shape1 same as shape1 in rbeta
 #' @param shape2 same as shape2 in rbeta
 #' @param ncp same as ncp in rbeta
-gen.beta <- function ( shape1, shape2, ncp = 0 ) {
+gen.beta <- function ( shape1, shape2, ncp = 0 )
   gen.shrink (
     shrink.towards(qbeta(0.5, shape1, shape2, ncp ))
   , gen ( function( size ) { tree ( rbeta( 1, shape1, shape2, ncp )) })
   )
-}
 
 #' Helper to create a generator with a
 #' shrink function.
@@ -268,12 +267,12 @@ gen.beta <- function ( shape1, shape2, ncp = 0 ) {
 #'   returning a vector of 'a.
 #' @param g a generator we wish to add shrinking
 #'   to
-gen.shrink <- function ( shrinker, g ) {
+gen.shrink <- function ( shrinker, g )
   gen ( function( size )
     tree.expand ( shrinker
                 , tree.traverse(unfoldgenerator(g, size)))
   )
-}
+
 
 #' Stop a generator from shrinking
 #'
@@ -281,26 +280,26 @@ gen.shrink <- function ( shrinker, g ) {
 #'
 #' @param g a generator we wish to remove shrinking
 #'   from
-gen.no.shrink <- function ( g ) {
+gen.no.shrink <- function ( g )
   gen ( function( size ) {
     ts <- unfoldgenerator(g, size)
     t  <- tree.traverse( ts )
     tree ( t$root )
   })
-}
+
 
 #' Generate a vector of primitive values
 #' from a generator
 #'
 #' @export
 #'
-#' @param g a generator used for vector elements
+#' @param generator a generator used for vector elements
 #' @param from minimum length of the list of
 #'   elements
 #' @param to maximum length of the list of
 #'   elements ( defaults to size if NULL )
-gen.c <- function ( g, from = 1, to = NULL  ) {
-  gen.map ( unlist, gen.list(g, from, to) )
+gen.c <- function ( generator, from = 1, to = NULL  ) {
+  gen.map ( unlist, gen.list(generator, from, to) )
 }
 
 #' Generate a vector of primitive values
@@ -309,9 +308,9 @@ gen.c <- function ( g, from = 1, to = NULL  ) {
 #' @export
 #'
 #' @param number length of vector to generate
-#' @param g a generator used for vector elements
-gen.c.of <- function ( x, g ) {
-  gen.map ( unlist, gen.list.of(x, g) )
+#' @param generator a generator used for vector elements
+gen.c.of <- function ( number, generator ) {
+  gen.map ( unlist, gen.list.of( number, generator ))
 }
 
 #' Generate a list of values with fixed length
@@ -319,7 +318,7 @@ gen.c.of <- function ( x, g ) {
 #' @export
 #'
 #' @param number length of list to generate
-#' @param g a generator used for list elements
+#' @param generator a generator used for list elements
 gen.list.of <- function ( number, generator ) {
   gen ( function ( size )
     tree.replicateM ( number, function() {
@@ -334,7 +333,7 @@ gen.list.of <- function ( number, generator ) {
 #'
 #' @export
 #'
-#' @param g a generator used for list elements
+#' @param generator a generator used for list elements
 #' @param from minimum length of the list of
 #'   elements
 #' @param to maximum length of the list of
@@ -357,7 +356,7 @@ gen.list <- function ( generator, from = 1, to = NULL )
 
 #' Generator Conditioning
 #'
-#' Require a generator to hold some property
+#' Require a generator's output to hold some property
 #'
 #' This function will fail with stop if the discard
 #' limit is passed.
@@ -374,7 +373,7 @@ gen.list <- function ( generator, from = 1, to = NULL )
 #' @param discard.limit the maximum number of predicate
 #'   failures on a single example before this generator
 #'   fails. This should be at most 100, as beyond this
-#'   level, R may detect the generator as an infinite
+#'   level, R may detect the generator to be an infinite
 #'   loop and kill it.
 gen.ensure <- function ( requires, generator, discard.limit = 100 ) {
   if ( discard.limit <= 0 )

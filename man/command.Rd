@@ -39,8 +39,8 @@ function generator).}
 polymorphic over symbolic and concrete inputs and
 outputs (as it is used in both action generation and
 command execution).
-It's critical that one doesn't "inspect" the values
-going into the state for this function.}
+It's critical that one doesn't "inspect" the output
+and input values when writing this function.}
 
 \item{ensure}{A post-condition for a command that must be
 verified for the command to be considered a success.}

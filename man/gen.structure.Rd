@@ -9,7 +9,7 @@ gen.structure(x, ...)
 \arguments{
 \item{x}{an object generator which will have various attributes attached to it.}
 
-\item{...}{attributes, specified in ‘tag = value’ form, which will be
+\item{...}{attributes, specified in 'tag = value' form, which will be
 attached to generated data.}
 }
 \description{

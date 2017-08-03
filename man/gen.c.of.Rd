@@ -5,12 +5,12 @@
 \title{Generate a vector of primitive values
 from a generator.}
 \usage{
-gen.c.of(x, g)
+gen.c.of(number, generator)
 }
 \arguments{
-\item{g}{a generator used for vector elements}
-
 \item{number}{length of vector to generate}
+
+\item{generator}{a generator used for vector elements}
 }
 \description{
 Generate a vector of primitive values

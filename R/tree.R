@@ -71,6 +71,21 @@ tree.bind <- function ( f, x ) {
 
 #' @rdname tree
 #' @export
+tree.liftA2 <- function ( f, x, y ) {
+  z <- f ( x$root, y$root )
+  tree (
+    root      = z
+  , children_ = unlist(
+                list(
+                    lapply( x$children(), function(xx) tree.liftA2(f, xx, y) )
+                  , lapply( y$children(), function(yy) tree.liftA2(f, x, yy) )
+                ), recursive = F
+               )
+  )
+}
+
+#' @rdname tree
+#' @export
 tree.expand <- function ( shrink, x ) {
   node         <- x$root
   children     <- x$children

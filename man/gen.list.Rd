@@ -8,13 +8,13 @@ length bounded by the size parameter.}
 gen.list(generator, from = 1, to = NULL)
 }
 \arguments{
+\item{generator}{a generator used for list elements}
+
 \item{from}{minimum length of the list of
 elements}
 
 \item{to}{maximum length of the list of
 elements ( defaults to size if NULL )}
-
-\item{g}{a generator used for list elements}
 }
 \description{
 Generate a list of values, with

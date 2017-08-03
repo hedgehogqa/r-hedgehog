@@ -28,8 +28,8 @@ utils::globalVariables(c("hedgehog.internal"))
 #'
 #' @examples
 #' forall (
-#'   list ( a = vec( gen.sample(1:100))
-#'        , b = vec(gen.sample(1:100))
+#'   list ( a = gen.c( gen.sample(1:100))
+#'        , b = gen.c(gen.sample(1:100))
 #'        )
 #'   , function(x) {
 #'       identical ( c(rev(x$b), rev(x$a)), rev( c(x$a, x$b )))
@@ -38,7 +38,7 @@ utils::globalVariables(c("hedgehog.internal"))
 #' # TRUE
 #'
 #' # False example showing minimum shrink:
-#' forall ( vec( gen.sample(1:100)), function(x) { identical ( rev(x), x ) } )
+#' forall ( gen.c( gen.sample(1:100)), function(x) { identical ( rev(x), x ) } )
 #' # Falsifiable after 1 tests, and 5 shrinks
 #' # Predicate is falsifiable
 #'
@@ -63,7 +63,7 @@ forall <- function ( generator, property, tests = 100, size = 10, shrink.limit =
     if ( ! testable_success( run.prop(property, value, single.argument))) {
       # The test didn't pass. Find the smallest
       # counterexample we can ( by shrinking ).
-      counterexample <- find.smallest( tree, property, single.argument, shrink.limit, 0, pb )
+      counterexample <- find.smallest( tree, property, single.argument, shrink.limit, 0 )
 
       # Print the message which comes with the counterexample.
       message <- run.prop( property, counterexample$smallest, single.argument )
@@ -123,7 +123,7 @@ unfoldgenerator <- function ( generator , size ) {
 #'   generated as individual arguments.
 #' @param shrink.limit the limit to how far we will try and shrink
 #' @param shrinks the current number of shrinks
-find.smallest <- function ( tree, property, single.argument, shrink.limit, shrinks, pb ) {
+find.smallest <- function ( tree, property, single.argument, shrink.limit, shrinks ) {
 
   # The smallest value so far.
   point    <- list ( smallest = tree$root, shrinks = shrinks )
@@ -147,7 +147,7 @@ find.smallest <- function ( tree, property, single.argument, shrink.limit, shrin
   if (is.null(smaller)) {
     point
   } else {
-    find.smallest( smaller, property, single.argument, shrink.limit, shrinks + 1, pb )
+    find.smallest( smaller, property, single.argument, shrink.limit, shrinks + 1 )
   }
 }
 
@@ -160,10 +160,13 @@ argument.list <- function(arguments) {
     arguments else list( arguments )
 }
 
-#' Run a property (with error handling), and turn it
-#' into a testable.
-#' @param property the property to test
-#' @param arguments the generated arguments to the property.
+# Run a property (with error handling), and turn it
+# into a testable.
+# @param property the property to test
+# @param arguments the generated arguments to the property.
+# @param single.argument whether to pass only one
+#   to the property, or use do.call to use the list
+#   generated as individual arguments.
 run.prop <- function ( property, arguments, single.argument ) {
   arguments <- if ( single.argument ) list ( arguments ) else arguments
   tryCatch( as.testable ( do.call( property, arguments) ),

@@ -39,8 +39,8 @@ as a generator.
 }
 \examples{
 forall (
-  list ( a = vec( gen.sample(1:100))
-       , b = vec(gen.sample(1:100))
+  list ( a = gen.c( gen.sample(1:100))
+       , b = gen.c(gen.sample(1:100))
        )
   , function(x) {
       identical ( c(rev(x$b), rev(x$a)), rev( c(x$a, x$b )))
@@ -49,7 +49,7 @@ forall (
 # TRUE
 
 # False example showing minimum shrink:
-forall ( vec( gen.sample(1:100)), function(x) { identical ( rev(x), x ) } )
+forall ( gen.c( gen.sample(1:100)), function(x) { identical ( rev(x), x ) } )
 # Falsifiable after 1 tests, and 5 shrinks
 # Predicate is falsifiable
 
