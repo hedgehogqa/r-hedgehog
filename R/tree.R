@@ -14,7 +14,7 @@
 #' @param children_
 #'   a list of children for the tree.
 #' @param f
-#'   a function for mapping or binding
+#'   a function for mapping, binding, or applying
 #' @param x
 #'   a tree to map or bind over
 #' @param a
@@ -60,12 +60,13 @@ tree.bind <- function ( f, x ) {
   y <- f ( x$root )
   tree (
     root      = y$root
-  , children_ = unlist(
-                list(
-                  lapply( x$children(), function(xx) tree.bind(f, xx) )
-                  , y$children()
-                ), recursive = F
-               )
+  , children_ =
+      unlist(
+        list(
+          lapply( x$children(), function(xx) tree.bind(f, xx) )
+          , y$children()
+        ), recursive = F
+      )
   )
 }
 
@@ -75,12 +76,13 @@ tree.liftA2 <- function ( f, x, y ) {
   z <- f ( x$root, y$root )
   tree (
     root      = z
-  , children_ = unlist(
-                list(
-                    lapply( x$children(), function(xx) tree.liftA2(f, xx, y) )
-                  , lapply( y$children(), function(yy) tree.liftA2(f, x, yy) )
-                ), recursive = F
-               )
+  , children_ =
+      unlist(
+        list(
+          lapply( x$children(), function(xx) tree.liftA2(f, xx, y) )
+        , lapply( y$children(), function(yy) tree.liftA2(f, x, yy) )
+        ), recursive = F
+      )
   )
 }
 
@@ -89,13 +91,14 @@ tree.liftA2 <- function ( f, x, y ) {
 tree.expand <- function ( shrink, x ) {
   node         <- x$root
   children     <- x$children
-  tree ( root = node,
-         children_ = unlist(
-                       list (
-                         lapply( children(), function( child ) tree.expand( shrink, child ) )
-                       , tree.unfoldForest( shrink, node )
-                       ), recursive = F
-                     )
+  tree( root = node,
+        children_ =
+          unlist(
+            list (
+              lapply( children(), function( child ) tree.expand( shrink, child ) )
+            , tree.unfoldForest( shrink, node )
+            ), recursive = F
+          )
        )
 }
 
@@ -134,18 +137,13 @@ tree.traverse <- function ( trees ) {
     # over it with a bind (this is essentially a foldM).
     # with an list accumulating in the fold.
     #
-    # /Note/ This may change to allow *applicative* shrinking.
-    merged  <- Reduce ( function (acc, t) {
-      tree.bind (
-        function(as) {
-          tree.bind (
-            function(a)
-              tree( unlist( list ( as, list(a) ) , recursive = F))
-            , t
-          )
-        }
-      , acc )
-    }, lowered, tree (list()) )
+    # /Note/ This is *applicative* shrinking, so shrinks can
+    # alternate between the positions in the list.
+    merged  <- Reduce (
+        function (acc, t) tree.liftA2 ( snoc, acc, t )
+      , lowered
+      , tree(list())
+      )
 
     # The original list had structure to it (class, attributes...).
     # We have made a tree containing lists of the same shape, but

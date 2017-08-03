@@ -18,6 +18,6 @@ function.
 \details{
 Really, this is just an integer, which we use
 as a name for a value which will exist later
-in the computation
+in the computation.
 }
 
