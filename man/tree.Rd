@@ -4,6 +4,7 @@
 \alias{tree}
 \alias{tree.bind}
 \alias{tree.expand}
+\alias{tree.liftA2}
 \alias{tree.map}
 \alias{tree.traverse}
 \alias{tree.unfold}
@@ -15,6 +16,8 @@ tree(root, children_ = list())
 tree.map(f, x)
 
 tree.bind(f, x)
+
+tree.liftA2(f, x, y)
 
 tree.expand(shrink, x)
 
@@ -29,7 +32,7 @@ tree.traverse(trees)
 
 \item{children_}{a list of children for the tree.}
 
-\item{f}{a function for mapping or binding}
+\item{f}{a function for mapping, binding, or applying}
 
 \item{x}{a tree to map or bind over}
 
