@@ -5,9 +5,10 @@
 #' This is hedgehog's internal implementation
 #' of a lazy rose tree.
 #'
-#' In general, one should not
-#' need to use this, as the combinators in the
-#' gen module should be expressive enough.
+#' In general, one should not be required to
+#' use any of the functions from this module
+#' as the combinators in the gen module
+#' should be expressive enough.
 #'
 #' @param root
 #'   the root of the rose tree
@@ -137,8 +138,9 @@ tree.traverse <- function ( trees ) {
     # over it with a bind (this is essentially a foldM).
     # with an list accumulating in the fold.
     #
-    # /Note/ This is *applicative* shrinking, so shrinks can
-    # alternate between the positions in the list.
+    # /Note/ This is *independent* (or applicative) shrinking,
+    # so shrinks canalternate between the positions in the
+    # list.
     merged  <- Reduce (
         function (acc, t) tree.liftA2 ( snoc, acc, t )
       , lowered
@@ -185,14 +187,11 @@ tree.replicateM <- function ( num, ma, ...) {
   if ( num <= 0) {
     tree ( list() )
   } else {
-    tree.bind (
-      function(a) {
-        tree.map (
-            function(as) cons(a, as)
-          , tree.replicateM ( num - 1, ma )
-        )
-      }
-    , do.call(ma, list(...)) )
+    tree.liftA2 (
+      cons
+    , do.call(ma, list(...))
+    , tree.replicateM ( num - 1, ma, ... )
+    )
   }
 }
 
