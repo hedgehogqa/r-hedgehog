@@ -5,7 +5,7 @@
 \title{Search through the trees to find the smallest value we can
 which still fails the test.}
 \usage{
-find.smallest(tree, property, single.argument, shrink.limit, shrinks, pb)
+find.smallest(tree, property, single.argument, shrink.limit, shrinks)
 }
 \arguments{
 \item{tree}{the tree to search through for the smallest

@@ -9,7 +9,7 @@ gen.list.of(number, generator)
 \arguments{
 \item{number}{length of list to generate}
 
-\item{g}{a generator used for list elements}
+\item{generator}{a generator used for list elements}
 }
 \description{
 Generate a list of values with fixed length

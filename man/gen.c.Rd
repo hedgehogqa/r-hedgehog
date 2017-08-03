@@ -5,10 +5,10 @@
 \title{Generate a vector of primitive values
 from a generator}
 \usage{
-gen.c(g, from = 1, to = NULL)
+gen.c(generator, from = 1, to = NULL)
 }
 \arguments{
-\item{g}{a generator used for vector elements}
+\item{generator}{a generator used for vector elements}
 
 \item{from}{minimum length of the list of
 elements}
