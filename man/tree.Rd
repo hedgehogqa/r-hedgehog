@@ -36,6 +36,8 @@ tree.traverse(trees)
 
 \item{x}{a tree to map or bind over}
 
+\item{y}{a tree to map or bind over}
+
 \item{shrink}{a shrinking function}
 
 \item{a}{a value to unfold from}
@@ -50,8 +52,9 @@ This is hedgehog's internal implementation
 of a lazy rose tree.
 }
 \details{
-In general, one should not
-need to use this, as the combinators in the
-gen module should be expressive enough.
+In general, one should not be required to
+use any of the functions from this module
+as the combinators in the gen module
+should be expressive enough.
 }
 

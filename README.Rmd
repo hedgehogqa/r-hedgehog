@@ -1,6 +1,14 @@
 hedgehog
 ========
-
+```{r setup, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(
+  # collapse = TRUE,
+  # comment = "#>",
+  fig.path = "README-"
+)
+library(hedgehog)
+set.seed(1014)
+```
 <img src="hedgehog-logo.png" width="307" align="right"/>
 
 > Hedgehog will eat all your bugs.
@@ -28,13 +36,8 @@ showing some of the properties a function which reverses a vector
 should have. We'll be testing the `rev` function from
 `package:base`.
 
-
-```r
+```{r echo = T, message = F}
 forall( gen.c( gen.sample(1:100) ), function(xs) identical ( rev(rev(xs)), xs))
-```
-
-```
-## Passed after 100 tests
 ```
 
 The property above tests that if I reverse a vector twice, the
@@ -53,16 +56,11 @@ The property above doesn't actually completely specify that the
 the identity function and still observe this result. We will therefore
 write one more property to thouroughly test this function.
 
-
-```r
+```{r echo = T, message = F}
 forall( list( as = gen.c( gen.sample(1:100) )
             , bs = gen.c( gen.sample(1:100) ))
       , function(as,bs) identical ( rev(c(as, bs)), c(rev(bs), rev(as)))
 )
-```
-
-```
-## Passed after 100 tests
 ```
 
 This is now a well tested reverse function. Notice that the property
@@ -75,18 +73,8 @@ as a list of generators.
 Now let's look at an assertion which isn't true so we can see what a
 counterexamples looks like
 
-
-```r
+```{r echo = T, message = F}
 forall( gen.c( gen.sample(1:100) ), function(xs) identical ( rev(xs), xs))
-```
-
-```
-##
-## Falsifiable after 1 tests, and 8 shrinks
-## Predicate is falsifiable
-##
-## Counterexample:
-## [1] 1 2
 ```
 
 This test says that the reverse of a vector should equal the vector,
@@ -101,22 +89,8 @@ Hedgehog exports some basic generators and plenty combinators for
 making new generators. Here's an example which produces a floating
 point value between -10 and 10, shrinking to the median 0.
 
-
-```r
+```{r echo = T, message = F}
 gen.unif( from = -10, to = 10 )
-```
-
-```
-## Hedgehog generator:
-## A generator is a function which produces random trees
-## using a size parameter to scale it.
-##
-## Example:
-## [1] -2.085815
-## Shrinks:
-## [1] 0
-## [1] -0.08581477
-## [1] -1.085815
 ```
 
 Although only three possible shrinks are shown above, these are
@@ -125,22 +99,8 @@ This integrated shrinking property is a key component of hedgehog,
 and gives us a substantial change of reducing to a minimum possible
 counterexample.
 
-
-```r
+```{r echo = T, message = F}
 forall(list(a = gen.sample(1:100), b = gen.sample(1:100)), function(a, b) a < b + 1)
-```
-
-```
-##
-## Falsifiable after 2 tests, and 10 shrinks
-## Predicate is falsifiable
-##
-## Counterexample:
-## $a
-## [1] 2
-##
-## $b
-## [1] 1
 ```
 
 The generators `gen.c`, `gen.sample`, and `gen.unif`, are related to
@@ -161,8 +121,7 @@ results of a generator.
 In the following example, we'll create a generator which builds two
 lists of length `n`, then turn them into a `data.frame` with `gen.map`.
 
-
-```r
+```{r echo = T, message = F}
 gen.df.of <- function ( n )
   gen.map (
     as.data.frame,
@@ -174,17 +133,12 @@ gen.df.of <- function ( n )
 forall( gen.df.of(5), function(df) nrow(df) == 5)
 ```
 
-```
-## Passed after 100 tests
-```
-
 While this is good, but we would also like to be able to create
 `data.frames` with a varying number of rows. Here, we'll again
 test a property which is false in order to show how hedgehog
 will find the minimum shrink.
 
-
-```r
+```{r echo = T, message = F}
 gen.df <-
   gen.with (
     gen.sample (1:100)
@@ -192,17 +146,6 @@ gen.df <-
   )
 
 forall( gen.df, function(x) nrow(x) == 1)
-```
-
-```
-##
-## Falsifiable after 1 tests, and 9 shrinks
-## Predicate is falsifiable
-##
-## Counterexample:
-##   as bs
-## 1  1 10
-## 2  1 10
 ```
 
 State Machine Testing

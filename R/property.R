@@ -20,20 +20,17 @@ utils::globalVariables(c("hedgehog.internal"))
 #' @param shrink.limit the maximum number of shrinks to
 #'   run when shrinking a value to find the smallest
 #'   counterexample.
-#' @param single.argument whether to pass only one
-#'   to the property, or use do.call to use the list
+#' @param curry whether to curry the arguments passed
+#'   to the property, and use do.call to use the list
 #'   generated as individual arguments.
 #'
 #' @importFrom progress progress_bar
 #'
 #' @examples
-#' forall (
-#'   list ( a = gen.c( gen.sample(1:100))
-#'        , b = gen.c(gen.sample(1:100))
-#'        )
-#'   , function(x) {
-#'       identical ( c(rev(x$b), rev(x$a)), rev( c(x$a, x$b )))
-#'     }
+#' forall( list( as = gen.c( gen.sample(1:100) )
+#'             , bs = gen.c( gen.sample(1:100) ))
+#'       , function( as, bs )
+#'           identical ( rev(c(as, bs)), c(rev(bs), rev(as)))
 #' )
 #' # TRUE
 #'
@@ -46,8 +43,9 @@ utils::globalVariables(c("hedgehog.internal"))
 #' # [1] 1 2
 #'
 #' @export
-forall <- function ( generator, property, tests = 100, size = 10, shrink.limit = 1000, single.argument = !(identical(class(generator), "list"))) {
+forall <- function ( generator, property, tests = 100, size = 10, shrink.limit = 1000, curry = identical(class(generator), "list")) {
 
+  # Start a progress bar to track how far we have come.
   pb <- progress_bar$new(
           format = "  Running tests [:bar] :current of :total",
           total = tests, clear = FALSE, width= 60 )
@@ -60,13 +58,13 @@ forall <- function ( generator, property, tests = 100, size = 10, shrink.limit =
     pb$tick()
 
     # Run the test
-    if ( ! testable_success( run.prop(property, value, single.argument))) {
+    if ( ! testable_success( run.prop(property, value, curry))) {
       # The test didn't pass. Find the smallest
       # counterexample we can ( by shrinking ).
-      counterexample <- find.smallest( tree, property, single.argument, shrink.limit, 0 )
+      counterexample <- find.smallest( tree, property, curry, shrink.limit, 0 )
 
       # Print the message which comes with the counterexample.
-      message <- run.prop( property, counterexample$smallest, single.argument )
+      message <- run.prop( property, counterexample$smallest, curry )
 
       # Print a nice message for the user.
       print ( report ( i, counterexample$shrinks, message, counterexample$smallest ) )
@@ -167,8 +165,8 @@ argument.list <- function(arguments) {
 # @param single.argument whether to pass only one
 #   to the property, or use do.call to use the list
 #   generated as individual arguments.
-run.prop <- function ( property, arguments, single.argument ) {
-  arguments <- if ( single.argument ) list ( arguments ) else arguments
+run.prop <- function ( property, arguments, curry ) {
+  arguments <- if ( curry ) arguments else list ( arguments )
   tryCatch( as.testable ( do.call( property, arguments) ),
     warning = function(w) as.testable(w),
     error = function(e) as.testable(e))
