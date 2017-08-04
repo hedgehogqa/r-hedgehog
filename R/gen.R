@@ -321,7 +321,7 @@ gen.c.of <- function ( number, generator ) {
 #' @param generator a generator used for list elements
 gen.list.of <- function ( number, generator ) {
   gen ( function ( size )
-    tree.replicateM ( number, function() {
+    tree.replicate ( number, function() {
       trees  <- unfoldgenerator (generator, size)
       tree.traverse( trees )
     })

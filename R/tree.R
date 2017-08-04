@@ -18,6 +18,8 @@
 #'   a function for mapping, binding, or applying
 #' @param x
 #'   a tree to map or bind over
+#' @param y
+#'   a tree to map or bind over
 #' @param a
 #'   a value to unfold from
 #' @param shrink
@@ -183,14 +185,14 @@ NULL
 
 #' @rdname tree.replicate
 #' @export
-tree.replicateM <- function ( num, ma, ...) {
+tree.replicate <- function ( num, ma, ...) {
   if ( num <= 0) {
     tree ( list() )
   } else {
     tree.liftA2 (
       cons
     , do.call(ma, list(...))
-    , tree.replicateM ( num - 1, ma, ... )
+    , tree.replicate ( num - 1, ma, ... )
     )
   }
 }

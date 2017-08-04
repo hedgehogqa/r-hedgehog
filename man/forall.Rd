@@ -5,7 +5,7 @@
 \title{Hedgehog property test}
 \usage{
 forall(generator, property, tests = 100, size = 10, shrink.limit = 1000,
-  single.argument = !(identical(class(generator), "list")))
+  curry = identical(class(generator), "list"))
 }
 \arguments{
 \item{generator}{a generator or list of generators
@@ -23,8 +23,8 @@ it.}
 run when shrinking a value to find the smallest
 counterexample.}
 
-\item{single.argument}{whether to pass only one
-to the property, or use do.call to use the list
+\item{curry}{whether to curry the arguments passed
+to the property, and use do.call to use the list
 generated as individual arguments.}
 }
 \description{
@@ -38,13 +38,10 @@ argument and the whole construct will be treated
 as a generator.
 }
 \examples{
-forall (
-  list ( a = gen.c( gen.sample(1:100))
-       , b = gen.c(gen.sample(1:100))
-       )
-  , function(x) {
-      identical ( c(rev(x$b), rev(x$a)), rev( c(x$a, x$b )))
-    }
+forall( list( as = gen.c( gen.sample(1:100) )
+            , bs = gen.c( gen.sample(1:100) ))
+      , function( as, bs )
+          identical ( rev(c(as, bs)), c(rev(bs), rev(as)))
 )
 # TRUE
 

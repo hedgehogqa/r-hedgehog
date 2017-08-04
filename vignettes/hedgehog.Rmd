@@ -2,9 +2,9 @@
 title: "Hedgehog - Property testing in R"
 author: "Huw Campbell"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: github_document
 vignette: >
-  %\VignetteIndexEntry{Devtools dependencies}
+  %\VignetteIndexEntry{Hedgehog tutorial}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -71,10 +71,10 @@ forall( list( as = gen.c( gen.sample(1:100) )
 
 This is now a well tested reverse function. Notice that the property
 function now accepts two arguments: `as` and `bs`. A list of generators
-in Hedgehog is treated as a generator of lists, and shrinks like one. We
-do however do our best to make sure that properties can be specified
-naturally if the generator is specified in this manner as a list of
-generators.
+in Hedgehog is treated as a generator of lists, and shrinks both sides
+independently. We do however do our best to make sure that properties
+can be specified naturally if the generator is specified in this manner
+as a list of generators.
 
 Now let's look at an assertion which isn't true so we can see what a
 counterexamples looks like
@@ -106,7 +106,7 @@ and gives us a substantial change of reducing to a minimum possible
 counterexample.
 
 ```{r echo = T, message = F}
-forall( gen.sample(1:100), function(a) a < 35)
+forall(list(a = gen.sample(1:100), b = gen.sample(1:100)), function(a, b) a < b + 1)
 ```
 
 The generators `gen.c`, `gen.sample`, and `gen.unif`, are related to

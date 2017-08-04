@@ -2,11 +2,10 @@
 % Please edit documentation in R/tree.R
 \name{tree.replicate}
 \alias{tree.replicate}
-\alias{tree.replicateM}
 \alias{tree.replicateS}
 \title{Creating trees of lists}
 \usage{
-tree.replicateM(num, ma, ...)
+tree.replicate(num, ma, ...)
 
 tree.replicateS(num, ma, s, ...)
 }
