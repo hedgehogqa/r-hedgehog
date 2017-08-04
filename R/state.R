@@ -68,13 +68,14 @@ print.action <- function ( action ) {
 #'   and input values when writing this function.
 #' @param ensure A post-condition for a command that must be
 #'   verified for the command to be considered a success.
+#'   This should be a set of testthat expectations.
 #' @return a command structure.
 command  <- function( title
                     , generator
                     , execute
                     , require = function(state, ...) T
                     , update  = function(state, output, ...) state
-                    , ensure  = function(state, output, ...) T
+                    , ensure  = function(state, output, ...) testthat::succeed()
                     ) {
   gen_     <- match.fun ( generator )
   execute_ <- match.fun ( execute )
@@ -247,11 +248,10 @@ execute <- function ( state, env, action ) {
   env[[action$output]] <- output
 
   ensure_ <- partial( action$ensure, state = state, output = output)
-  result_ <- do.call( ensure_ , as.list( input ))
+  do.call( ensure_ , as.list( input ))
 
   list( state = state_
       , environment = env
-      , result = result_
       )
 }
 
@@ -271,10 +271,8 @@ executeSequential <- function ( initial.state, actions ) {
   final <-
     Reduce (
       function( acc, action )
-        if ( testable_success( as.testable (acc$result ))) {
-          execute( acc$state, acc$environment, action )
-        } else acc
-      , init = list( state = initial.state, environment = list(), result = T)
+        execute( acc$state, acc$environment, action )
+      , init = list( state = initial.state, environment = list() )
       , actions
     )
   final$result
