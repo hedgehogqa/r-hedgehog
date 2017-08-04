@@ -1,4 +1,5 @@
 library(R6)
+library(testthat)
 
 ###############################
 # State machine testing demo  #
@@ -26,8 +27,10 @@ read <- command ( "Read",
   , require = function( state, pid )
       !is.null ( Find( function( proc ) { proc$pid == pid } , state ) )
   , execute = function( pid ) grefs$readRef(pid)
-  , ensure  = function( state, output, pid )
-      Find( function( proc ) { proc$pid == pid } , state )$val == output
+  , ensure  = function( state, output, pid ) {
+      expected <- Find( function( proc ) { proc$pid == pid } , state )$val
+      expect_equal( expected, output)
+    }
   )
 
 # Definition of our Write command
@@ -113,7 +116,9 @@ snoc <- function (xs, x) {
   unlist ( list ( xs, list( x)) , recursive = F )
 }
 
-forall( gen.actions ( initialstate, list(new, read, write, inc) ), function( actions ) {
+test_that( "Actions hold",
+  forall( gen.actions ( initialstate, list(new, read, write, inc) ), function( actions ) {
     grefs$reset()
     executeSequential( initialstate, actions )
   })
+)

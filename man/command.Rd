@@ -6,7 +6,7 @@
 \usage{
 command(title, generator, execute, require = function(state, ...) T,
   update = function(state, output, ...) state, ensure = function(state,
-  output, ...) T)
+  output, ...) testthat::succeed())
 }
 \arguments{
 \item{title}{the name of this command, to be shown when
@@ -43,7 +43,8 @@ It's critical that one doesn't "inspect" the output
 and input values when writing this function.}
 
 \item{ensure}{A post-condition for a command that must be
-verified for the command to be considered a success.}
+verified for the command to be considered a success.
+This should be a set of testthat expectations.}
 }
 \value{
 a command structure.

@@ -24,7 +24,9 @@ utils::globalVariables(c("hedgehog.internal"))
 #'   to the property, and use do.call to use the list
 #'   generated as individual arguments.
 #'
-#' @importFrom progress progress_bar
+#' @importFrom utils capture.output
+#' @importFrom testthat fail
+#' @importFrom testthat succeed
 #'
 #' @examples
 #' forall( list( as = gen.c( gen.sample(1:100) )
@@ -44,47 +46,32 @@ utils::globalVariables(c("hedgehog.internal"))
 #'
 #' @export
 forall <- function ( generator, property, tests = 100, size = 10, shrink.limit = 1000, curry = identical(class(generator), "list")) {
-
-  # Start a progress bar to track how far we have come.
-  pb <- progress_bar$new(
-          format = "  Running tests [:bar] :current of :total",
-          total = tests, clear = FALSE, width= 60 )
-
   # R doesn't have good tail call optimisation, hence, loops.
   for (i in 1:tests) {
     trees  <- unfoldgenerator( generator, size )
     tree   <- tree.traverse ( trees )
     value  <- tree$root
-    pb$tick()
 
     # Run the test
-    if ( ! testable_success( run.prop(property, value, curry))) {
+    if ( !run.prop(property, value, curry)) {
       # The test didn't pass. Find the smallest
       # counterexample we can ( by shrinking ).
       counterexample <- find.smallest( tree, property, curry, shrink.limit, 0 )
 
       # Print the message which comes with the counterexample.
-      message <- run.prop( property, counterexample$smallest, curry )
+      message        <- run.only( property, counterexample$smallest, curry )
 
       # Print a nice message for the user.
-      print ( report ( i, counterexample$shrinks, message, counterexample$smallest ) )
-
-      # If we're inside a runner, update the error tally.
-      if (exists("hedgehog.internal")) {
-        hedgehog.internal$failures <<- hedgehog.internal$failures + 1
-      }
-
-      # Exit the loop with failure
-      return(invisible(F))
+      rep            <- capture.output(print (
+                          report ( i, counterexample$shrinks, message, counterexample$smallest ))
+                        )
+      # Exit the loop with failure, this will be picked up
+      # by testthat and displayed nicely.
+      return( fail( message = paste(rep, collapse = "\n") ) )
     }
   }
-  cat( paste("Passed after", tests, "tests\n") )
 
-  # If we're inside a runner, update the success tally.
-  if (exists("hedgehog.internal")) {
-    hedgehog.internal$successes <<- hedgehog.internal$successes + 1
-  }
-  invisible(T)
+  succeed( message = paste("Passed after", tests, "tests\n") )
 }
 
 #' Turn a generator into a tree and a list of generators
@@ -137,7 +124,7 @@ find.smallest <- function ( tree, property, single.argument, shrink.limit, shrin
   # This is a recursive depth first search, which assumes that no
   # branch in a child will fail if the root doesn't as well.
   smaller <- Find ( function( child ) {
-    !testable_success( run.prop( property, child$root, single.argument ))
+    !(run.prop( property, child$root, single.argument ))
   }, children )
 
   # If there was nothing found, the the root must be the smallest
@@ -166,8 +153,146 @@ argument.list <- function(arguments) {
 #   to the property, or use do.call to use the list
 #   generated as individual arguments.
 run.prop <- function ( property, arguments, curry ) {
-  arguments <- if ( curry ) arguments else list ( arguments )
-  tryCatch( as.testable ( do.call( property, arguments) ),
-    warning = function(w) as.testable(w),
-    error = function(e) as.testable(e))
+  arguments  <- if ( curry ) arguments else list ( arguments )
+  test_error <- NULL
+  handled    <- F
+  ok         <- T
+  register_expectation <- function(e) {
+    e   <- cast.expectation(e)
+    ok <<- ok && expectation_ok(e)
+  }
+  handle_error <- function(e) {
+    handled    <<- TRUE
+    # First thing: Collect test error
+    test_error <<- e
+
+    register_expectation(e)
+    e$handled <- TRUE
+    test_error <<- e
+  }
+  handle_fatal <- function(e) {
+    handled <<- TRUE
+    # Error caught in handle_error() has precedence
+    if (!is.null(test_error)) {
+      e <- test_error
+      if (isTRUE(e$handled)) {
+        return()
+      }
+    }
+    register_expectation(e)
+  }
+  handle_expectation <- function(e) {
+    handled <<- TRUE
+    register_expectation(e)
+    invokeRestart("continue_test")
+  }
+  handle_warning <- function(e) {
+    handled <<- TRUE
+    register_expectation(e)
+    invokeRestart("muffleWarning")
+  }
+
+  tryCatch(
+    withCallingHandlers(
+        do.call( property, arguments )
+      , expectation = handle_expectation
+      , warning     = handle_warning
+      , error = handle_error
+    )
+  , error = handle_fatal
+  )
+  ok
+}
+
+run.only <- function ( property, arguments, curry ) {
+  arguments  <- if ( curry ) arguments else list ( arguments )
+  message    <- NULL
+  test_error <- NULL
+  handled    <- F
+  register_expectation <- function(e) {
+    e       <-  cast.expectation(e)
+    message <<- e
+  }
+
+  handle_error <- function(e) {
+    handled    <<- TRUE
+    # First thing: Collect test error
+    test_error <<- e
+
+    register_expectation(e)
+    e$handled <- TRUE
+    test_error <<- e
+  }
+  handle_fatal <- function(e) {
+    handled <<- TRUE
+    # Error caught in handle_error() has precedence
+    if (!is.null(test_error)) {
+      e <- test_error
+      if (isTRUE(e$handled)) {
+        return()
+      }
+    }
+    register_expectation(e)
+  }
+  handle_expectation <- function(e) {
+    handled <<- TRUE
+    register_expectation(e)
+    invokeRestart("continue_test")
+  }
+  handle_warning <- function(e) {
+    handled <<- TRUE
+    register_expectation(e)
+    invokeRestart("muffleWarning")
+  }
+
+  tryCatch(
+    withCallingHandlers(
+        do.call( property, arguments)
+      , expectation = handle_expectation
+      , warning     = handle_warning
+      , error = handle_error
+    )
+  , error = handle_fatal
+  )
+  message
+}
+
+expectation_type <- function(exp) {
+  stopifnot(testthat::is.expectation(exp))
+  gsub("^expectation_", "", class(exp)[[1]])
+}
+expectation_ok <- function(exp) {
+  expectation_type(exp) %in% c("success", "warning")
+}
+
+cast.expectation <- function(x, ...) UseMethod("cast.expectation", x)
+cast.expectation.default <- function(x, ..., srcref = NULL) {
+  stop("Don't know how to convert '", paste(class(x), collapse = "', '"),
+       "' to expectation.", call. = FALSE)
+}
+
+cast.expectation.expectation <- function(x, ..., srcref = NULL) {
+  if (is.null(x$srcref)) {
+    x$srcref <- srcref
+  }
+  x
+}
+cast.expectation.logical <- function(x, message, ..., srcref = NULL, info = NULL) {
+  type <- if (x) "success" else "failure"
+  testthat::expectation(type, paste(message, info, sep = "\n"), srcref = srcref)
+}
+cast.expectation.error <- function(x, ..., srcref = NULL) {
+  error <- x$message
+  msg <- gsub("Error.*?: ", "", as.character(error))
+  msg <- gsub("\n$", "", msg)
+  testthat::expectation("error", msg, srcref)
+}
+cast.expectation.warning <- function(x, ..., srcref = NULL) {
+  msg <- x$message
+  testthat::expectation("warning", msg, srcref)
+}
+cast.expectation.skip <- function(x, ..., srcref = NULL) {
+  error <- x$message
+  msg <- gsub("Error.*?: ", "", as.character(error))
+  testthat::expectation("skip", msg, srcref)
 }
