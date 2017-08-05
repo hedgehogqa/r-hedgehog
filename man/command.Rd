@@ -6,7 +6,7 @@
 \usage{
 command(title, generator, execute, require = function(state, ...) T,
   update = function(state, output, ...) state, ensure = function(state,
-  output, ...) testthat::succeed())
+  output, ...) NULL)
 }
 \arguments{
 \item{title}{the name of this command, to be shown when

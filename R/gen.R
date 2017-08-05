@@ -51,15 +51,33 @@ NULL
 gen <- function ( t )
   structure ( list ( unGen = t ), class = "gen" )
 
+#' Run a generator
+#'
+#' Samples from a generator or list of generators
+#' producing a (single) lazy tree rose tree.
+#'
+#' This is different to calling generarator$unGen(size)
+#' in that it also works on (nested) lists of generators
+#  pure values.
+#'
+#' @export
+#' @param generator A generator
+#' @param size The size parameter passed to the
+#'   generation functions
+gen.run <- function ( generator, size ) {
+  trees  <- unfoldgenerator ( generator, size )
+  tree   <- tree.traverse ( trees )
+  tree
+}
+
 #' @rdname gen-monad
 #' @export
 gen.with <- function ( g, f )
   gen ( function ( size ) {
-    trees     <- unfoldgenerator ( g, size )
-    tree      <- tree.traverse ( trees )
+    tree   <- gen.run ( g, size )
     tree.bind ( function(x) {
-      new <- unfoldgenerator (f(x), size)
-      tree.traverse ( new )
+      new <- gen.run (f(x), size)
+      new
     }, tree )
   })
 
@@ -77,8 +95,7 @@ gen.pure <- function ( x )
 #' @export
 gen.map <- function ( m, g )
   gen ( function ( size ) {
-    trees  <- unfoldgenerator ( g, size )
-    tree   <- tree.traverse ( trees )
+    tree   <- gen.run ( g, size )
     tree.map ( m, tree )
   })
 
@@ -87,9 +104,7 @@ gen.map <- function ( m, g )
 #' @param g A generator
 #' @param size The sized example to view
 gen.example <- function ( g, size = 5 ) {
-  trees  <- unfoldgenerator ( g, size )
-  tree   <- tree.traverse ( trees )
-  tree
+  gen.run ( g, size )
 }
 
 #' Print information about a generator.
@@ -154,8 +169,8 @@ gen.structure <- function ( x, ... )
 #' gen.sized ( function(e) gen.sample(1:e) )
 gen.sized <- function ( f )
   gen ( function ( size ) {
-    trees  <- unfoldgenerator ( f(size), size )
-    tree.traverse ( trees )
+    tree  <- gen.run ( f(size), size )
+    tree
   })
 
 #' Random Sample Generation
@@ -270,7 +285,7 @@ gen.beta <- function ( shape1, shape2, ncp = 0 )
 gen.shrink <- function ( shrinker, g )
   gen ( function( size )
     tree.expand ( shrinker
-                , tree.traverse(unfoldgenerator(g, size)))
+                , gen.run( g, size ))
   )
 
 
@@ -282,8 +297,7 @@ gen.shrink <- function ( shrinker, g )
 #'   from
 gen.no.shrink <- function ( g )
   gen ( function( size ) {
-    ts <- unfoldgenerator(g, size)
-    t  <- tree.traverse( ts )
+    t <- gen.run( g, size )
     tree ( t$root )
   })
 
@@ -322,8 +336,7 @@ gen.c.of <- function ( number, generator ) {
 gen.list.of <- function ( number, generator ) {
   gen ( function ( size )
     tree.replicate ( number, function() {
-      trees  <- unfoldgenerator (generator, size)
-      tree.traverse( trees )
+      gen.run (generator, size)
     })
   )
 }
@@ -386,4 +399,28 @@ gen.ensure <- function ( requires, generator, discard.limit = 100 ) {
         gen.ensure ( requires, generator, discard.limit = discard.limit - 1)
       }
     })
+}
+
+
+# Turn a generator into a tree and a list of generators
+# into a list of trees.
+# Non-generator and list values are passed along
+# as is.
+# Generators can use the random number generator when
+# creating their trees.
+#
+# @param generator the generator ( or list of generators )
+# @param size the size parameter to use
+unfoldgenerator <- function ( generator , size ) {
+  if (inherits( generator,"gen")) {
+    # A generator can be run and turned into
+    # a tree
+    generator$unGen(size)
+  } else if ( is.list(generator) ) {
+    # Lists can contain a generator.
+    lapply ( generator, function(g) unfoldgenerator(g, size) )
+  } else {
+    # Static values are passed through as is
+    generator
+  }
 }

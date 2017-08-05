@@ -75,7 +75,7 @@ command  <- function( title
                     , execute
                     , require = function(state, ...) T
                     , update  = function(state, output, ...) state
-                    , ensure  = function(state, output, ...) testthat::succeed()
+                    , ensure  = function(state, output, ...) NULL
                     ) {
   gen_     <- match.fun ( generator )
   execute_ <- match.fun ( execute )
@@ -124,20 +124,20 @@ reify <- function( x, env ) {
   }
 }
 
-#' Generator for actions
-#'
-#' @param commands the list of commands which
-#'   we can select choose from. Only commands
-#'   appropriate for the state will actually be
-#'   selected.
-#' @param state the current state of the system
-#' @param counter the output variable this action
-#'   can write to.
-#'
-#' @importFrom purrr partial
-#'
-#' @return a list, acc is the new state and counter
-#'   as well as the action generated.
+# Generator for actions
+#
+# @param commands the list of commands which
+#   we can select choose from. Only commands
+#   appropriate for the state will actually be
+#   selected.
+# @param state the current state of the system
+# @param counter the output variable this action
+#   can write to.
+#
+# @importFrom purrr partial
+#
+# @return a list, acc is the new state and counter
+#   as well as the action generated.
 gen.action <- function ( commands, state, counter ) {
   possible <- Filter ( function(command) {
     !is.null ( command$gen(state) )
@@ -230,16 +230,16 @@ gen.actions <- function ( initial.state, commands ) {
   )
 }
 
-#' Execute an action in an environment.
-#'
-#' Executes the action in an environment, ensuring
-#' all postconditions are met.
-#'
-#' @param state the current state of the system
-#' @param env the environment list (list of values
-#'   output so far by the computation.
-#' @param action the action to execute and check the
-#'   results from.
+# Execute an action in an environment.
+#
+# Executes the action in an environment, ensuring
+# all postconditions are met.
+#
+# @param state the current state of the system
+# @param env the environment list (list of values
+#   output so far by the computation.
+# @param action the action to execute and check the
+#   results from.
 execute <- function ( state, env, action ) {
   input   <- reify( action$input, env )
   output  <- do.call( action$execute, as.list(input) )
@@ -258,7 +258,7 @@ execute <- function ( state, env, action ) {
 #' Execute a state machine model
 #'
 #' Executes the list of commands sequentially,
-#  ensuring that all postconditions hold.
+#' ensuring that all postconditions hold.
 #'
 #' @export
 #' @param initial.state the starting state to
@@ -266,14 +266,18 @@ execute <- function ( state, env, action ) {
 #'   state machine generator.
 #' @param actions the list of actions which
 #'   are to be run.
-#' @return a testable value.
-executeSequential <- function ( initial.state, actions ) {
-  final <-
-    Reduce (
-      function( acc, action )
-        execute( acc$state, acc$environment, action )
-      , init = list( state = initial.state, environment = list() )
-      , actions
-    )
-  final$result
+#' @return an expectation.
+expect_sequential <- function ( initial.state, actions ) {
+  Reduce (
+    function( acc, action )
+      execute( acc$state, acc$environment, action )
+    , init = list( state = initial.state, environment = list() )
+    , actions
+  )
+  # Succeed ensures there is always at
+  # least one expectation. If there wasn't
+  # we could cause a "No expectations in
+  # property" error and shrink to 0 elements
+  # in the counterexample.
+  testthat::succeed()
 }

@@ -1,5 +1,7 @@
 library(R6)
-library(testthat)
+library(hedgehog)
+
+context("Finite State Machine")
 
 ###############################
 # State machine testing demo  #
@@ -109,16 +111,17 @@ refs <- R6Class("Refs",
 )
 grefs <- refs$new()
 
-#######################
-# Property Definition #
-#######################
 snoc <- function (xs, x) {
   unlist ( list ( xs, list( x)) , recursive = F )
 }
 
-test_that( "Actions hold",
+#######################
+# Property Definition #
+#######################
+
+test_that( "Registry State Machine Model",
   forall( gen.actions ( initialstate, list(new, read, write, inc) ), function( actions ) {
     grefs$reset()
-    executeSequential( initialstate, actions )
+    expect_sequential( initialstate, actions )
   })
 )
