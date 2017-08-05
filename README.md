@@ -17,8 +17,10 @@ Features
 
 - Integrated shrinking, shrinks obey invariants by construction.
 - Generators can be combined to build complex and interesting
-  structures
+  structures.
 - Abstract state machine testing.
+- Full compatibility with [testthat][testthat] makes it easy to
+  add property based testing, without disrupting your work flow.
 
 Example
 =======
@@ -30,11 +32,9 @@ should have. We'll be testing the `rev` function from
 
 
 ```r
-forall( gen.c( gen.sample(1:100) ), function(xs) identical ( rev(rev(xs)), xs))
-```
-
-```
-## Passed after 100 tests
+test_that( "Reverse of reverse is identity",
+  forall( gen.c( gen.sample(1:100) ), function(xs) expect_equal(rev(rev(xs)), xs))
+)
 ```
 
 The property above tests that if I reverse a vector twice, the
@@ -42,48 +42,55 @@ result should be the same as the vector that I began with.
 Hedgehog has generated 100 examples, and checked that this
 property holds in all of these cases.
 
-We use the term forall (which comes from predicate logic) to say
+As one can see, there is not a big step from using vanilla `testthat`
+to including hedgehog in one's process. Inside a `test_that` block,
+one can add a `forall` and set expectations within it.
+
+We use the term `forall` (which comes from predicate logic) to say
 that we want the property to be true no matter what the input to
-the tested function is. The first argument to forall is function
+the tested function is. The first argument to `forall` is function
 to generate random values (the generator); while the second is
-the property we wish to test.
+the properties we wish to test.
 
 The property above doesn't actually completely specify that the
 `rev` function is accurate though, as one could replace `rev` with
 the identity function and still observe this result. We will therefore
-write one more property to thouroughly test this function.
+write one more property to thoroughly test this function.
 
 
 ```r
-forall( list( as = gen.c( gen.sample(1:100) )
-            , bs = gen.c( gen.sample(1:100) ))
-      , function(as,bs) identical ( rev(c(as, bs)), c(rev(bs), rev(as)))
+test_that( "Reverse is associative",
+  forall( list( as = gen.c( gen.sample(1:100) )
+              , bs = gen.c( gen.sample(1:100) ))
+        , function(as,bs) expect_equal ( rev(c(as, bs)), c(rev(bs), rev(as)))
+  )
 )
-```
-
-```
-## Passed after 100 tests
 ```
 
 This is now a well tested reverse function. Notice that the property
 function now accepts two arguments: `as` and `bs`. A list of generators
-in Hedgehog is treated as a generator of lists, and shrinks both sides
+in Hedgehog is treated as a generator of lists, and shrinks all members
 independently. We do however do our best to make sure that properties
 can be specified naturally if the generator is specified in this manner
 as a list of generators.
 
-Now let's look at an assertion which isn't true so we can see what a
+Now let's look at an assertion which isn't true so we can see what our
 counterexamples looks like
 
 
 ```r
-forall( gen.c( gen.sample(1:100) ), function(xs) identical ( rev(xs), xs))
+test_that( "Reverse is identity",
+  forall( gen.c( gen.sample(1:100) ), function(xs) expect_equal(rev(xs), c(xs)))
+)
 ```
 
 ```
-##
-## Falsifiable after 1 tests, and 8 shrinks
-## Predicate is falsifiable
+## Error: Test failed: 'Reverse is identity'
+## * Falsifiable after 1 tests, and 8 shrinks
+## rev(xs) not equal to c(xs).
+## 2/2 mismatches (average diff: 1)
+## [1] 2 - 1 ==  1
+## [2] 1 - 2 == -1
 ##
 ## Counterexample:
 ## [1] 1 2
@@ -91,13 +98,16 @@ forall( gen.c( gen.sample(1:100) ), function(xs) identical ( rev(xs), xs))
 
 This test says that the reverse of a vector should equal the vector,
 which is obviously not true for all vectors. Here, the counterexample
-is shrunk from an original test value. The smallest possible value
-for which this doesn't hold is shown to the user.
+is shrunk from an original test value, that is, the first test case
+encountered is not the error given, rather, when an error is encountered,
+hedgehog will shrink the error case to the smallest value it can  for
+which this doesn't hold is. Here, it's `c(1,2)`, and hedgehog has found
+this value and displayed it to the user.
 
 Generators
 ==========
 
-Hedgehog exports some basic generators and plenty combinators for
+Hedgehog exports some basic generators and plenty of combinators for
 making new generators. Here's an example which produces a floating
 point value between -10 and 10, shrinking to the median 0.
 
@@ -122,18 +132,20 @@ gen.unif( from = -10, to = 10 )
 Although only three possible shrinks are shown above, these are
 actually just the first layer of a rose tree of possible shrinks.
 This integrated shrinking property is a key component of hedgehog,
-and gives us a substantial change of reducing to a minimum possible
+and gives us an excellent chance of reducing to the minimum possible
 counterexample.
 
 
 ```r
-forall(list(a = gen.sample(1:100), b = gen.sample(1:100)), function(a, b) a < b + 1)
+test_that( "a is less than b + 1",
+  forall(list(a = gen.sample(1:100), b = gen.sample(1:100)), function(a, b) expect_lt( a, b + 1 ))
+)
 ```
 
 ```
-##
-## Falsifiable after 2 tests, and 10 shrinks
-## Predicate is falsifiable
+## Error: Test failed: 'a is less than b + 1'
+## * Falsifiable after 2 tests, and 10 shrinks
+## 2 is not strictly less than b + 1. Difference: 0
 ##
 ## Counterexample:
 ## $a
@@ -151,7 +163,7 @@ functions inside Hedgehog.
 
 Generators are also monads, meaning that one can use the result of a
 generator to build a generator. An example of this is a list generator,
-which first randomly chooses a length, then builds a list of said
+which first randomly chooses a length, then generates a list of said
 length.
 
 The `gen.map` function can be used to apply an arbitrary function to
@@ -171,17 +183,16 @@ gen.df.of <- function ( n )
         )
     )
 
-forall( gen.df.of(5), function(df) nrow(df) == 5)
-```
-
-```
-## Passed after 100 tests
+test_that( "Number of rows is 5",
+  forall( gen.df.of(5), function(df) expect_equal(nrow(df), 5))
+)
 ```
 
 While this is good, but we would also like to be able to create
 `data.frames` with a varying number of rows. Here, we'll again
 test a property which is false in order to show how hedgehog
 will find the minimum shrink.
+
 
 
 ```r
@@ -191,19 +202,24 @@ gen.df <-
     , gen.df.of
   )
 
-forall( gen.df, function(x) nrow(x) == 1)
+test_that( "All data frames are of length 1",
+  forall( gen.df, function(x) expect_equal(nrow(x), 1))
+)
 ```
 
 ```
-##
-## Falsifiable after 1 tests, and 9 shrinks
-## Predicate is falsifiable
+## Error: Test failed: 'All data frames are of length 1'
+## * Falsifiable after 1 tests, and 9 shrinks
+## nrow(x) not equal to 1.
+## 1/1 mismatches
+## [1] 2 - 1 == 1
 ##
 ## Counterexample:
 ##   as bs
 ## 1  1 10
 ## 2  1 10
 ```
+
 
 State Machine Testing
 =====================
@@ -233,4 +249,5 @@ Hedgehog's current implementation in R is still quite young, and
 not nearly as feature rich, but does still allow for interesting
 properties in stateful systems to be investigated.
 
+  [testthat]: https://github.com/hadley/testthat
   [jh-dropbox]: https://www.youtube.com/watch?v=H18vxq-VsCk

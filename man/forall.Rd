@@ -38,15 +38,21 @@ argument and the whole construct will be treated
 as a generator.
 }
 \examples{
-forall( list( as = gen.c( gen.sample(1:100) )
-            , bs = gen.c( gen.sample(1:100) ))
-      , function( as, bs )
-          identical ( rev(c(as, bs)), c(rev(bs), rev(as)))
+test_that( "Reverse of reverse is identity",
+  forall( list( as = gen.c( gen.sample(1:100) )
+              , bs = gen.c( gen.sample(1:100) ))
+        , function( as, bs )
+            expect_identical ( rev(c(as, bs)), c(rev(bs), rev(as)))
+  )
 )
 # TRUE
 
 # False example showing minimum shrink:
-forall ( gen.c( gen.sample(1:100)), function(x) { identical ( rev(x), x ) } )
+\dontrun{
+test_that( "Reverse is identity",
+  forall ( gen.c( gen.sample(1:100)), function(x) { expect_identical ( rev(x), c(x) ) } )
+)
+}
 # Falsifiable after 1 tests, and 5 shrinks
 # Predicate is falsifiable
 

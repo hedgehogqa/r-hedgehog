@@ -1,7 +1,7 @@
 Package: hedgehog
 Type: Package
-Title: Hedgehog will eat all your bugs
-Version: 1.0
+Title: Hedgehog - Property Testing in R
+Version: 0.1
 Date: 2017-03-02
 Author: Huw Campbell
 Maintainer: Huw Campbell <huw.campbell@gmail.com>
@@ -11,8 +11,8 @@ Description: Hedgehog is a modern property-based
   obey the invariants of generated values by
   construction.
 License: MIT + file LICENCE
-Imports:
-Depends: purrr, utils, testthat
+Imports: purrr
+Depends: testthat
 Suggests: R6, knitr, rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 5.0.1
