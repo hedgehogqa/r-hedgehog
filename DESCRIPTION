@@ -3,8 +3,8 @@ Type: Package
 Title: Hedgehog - Property Testing in R
 Version: 0.1
 Date: 2017-03-02
-Author: Huw Campbell
-Maintainer: Huw Campbell <huw.campbell@gmail.com>
+Authors@R: person("Huw", "Campbell", email = "huw.campbell@gmail.com",
+                  role = c("aut", "cre"))
 Description: Hedgehog is a modern property-based
   testing system, in the spirit of QuickCheck.
   Hedgehog uses integrated shrinking, so shrinks

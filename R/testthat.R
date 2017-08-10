@@ -15,6 +15,8 @@
 # Run a property (with test case error handling), and turn it
 # into an expectation.
 #
+# Error handling code from testthat more or less.
+#
 # @param property the property to test
 # @param arguments the generated arguments to the property.
 # @param curry whether to pass only one argument
@@ -27,6 +29,7 @@ run.prop <- function ( property, arguments, curry ) {
   arguments  <- if ( curry ) arguments else list ( arguments )
   test_error <- NULL
   handled    <- F
+  discard    <- F
   ok         <- T
 
   register_expectation <- function(e) {
@@ -71,20 +74,26 @@ run.prop <- function ( property, arguments, curry ) {
     invokeRestart("muffleMessage")
   }
 
+  handle_discard <- function(e) {
+    handled <<- TRUE
+    discard <<- TRUE
+  }
+
   tryCatch(
     withCallingHandlers({
           do.call( property, arguments )
           if (!handled)
-            fail("No expectations in property")
+            testthat::fail("No expectations in property")
         }
       , expectation = handle_expectation
       , warning     = handle_warning
       , message     = handle_message
+      , discard     = handle_discard
       , error       = handle_error
     )
   , error = handle_fatal
   )
-  list ( ok = ok, test_error = test_error)
+  list ( discard = discard, ok = ok, test_error = test_error)
 }
 
 # From testthat.

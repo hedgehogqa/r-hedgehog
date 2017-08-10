@@ -18,13 +18,18 @@
 #' @param shrink.limit the maximum number of shrinks to
 #'   run when shrinking a value to find the smallest
 #'   counterexample.
+#' @param discard.limit the maximum number of discards to
+#'   permit when running the property.
 #' @param curry whether to curry the arguments passed
 #'   to the property, and use do.call to use the list
 #'   generated as individual arguments.
+#'   When curry is on, the function arity should be the
+#'   same as the length of the generated list.
+#'   Defaults to T if the input is a list.
 #'
 #' @importFrom utils capture.output
-#' @importFrom testthat fail
 #' @importFrom testthat succeed
+#' @importFrom testthat fail
 #'
 #' @examples
 #' test_that( "Reverse of reverse is identity",
@@ -49,25 +54,44 @@
 #' # [1] 1 2
 #'
 #' @export
-forall <- function ( generator, property, tests = 100, size = 10, shrink.limit = 1000, curry = identical(class(generator), "list")) {
-  # R doesn't have good tail call optimisation, hence, loops.
-  for (i in 1:tests) {
-    tree   <- gen.run ( generator, size )
-    value  <- tree$root
+forall <- function ( generator, property, tests = 100, size = 10, shrink.limit = 1000, discard.limit = 100, curry = identical(class(generator), "list")) {
 
-    # Run the test
-    if ( !run.prop(property, value, curry)$ok ) {
+  # Counters for the forall loop
+  discards <- 0
+  test     <- 0
+
+  # R doesn't have good tail call optimisation, hence the while loop.
+  while ( test < tests ) {
+    # Check if we have discarded too many trials
+    if (discards >= discard.limit)
+      return (testthat::fail( message = "discard limit reached"))
+
+    # Run the test with error handling
+    tree   <- gen.run ( generator, size )
+    run    <- run.prop( property, tree$root, curry )
+
+    # Check for a discard. If we're discarding, we won't increment the test
+    # counter, but do increment the discard counter and restart the loop.
+    if ( run$discard ) {
+      discards <- discards + 1
+      next
+    }
+
+    # Increment the test counter.
+    test <- test + 1
+
+    if ( !run$ok ) {
       # The test didn't pass. Find the smallest
       # counterexample we can ( by shrinking ).
-      counterexample <- find.smallest( tree, property, curry, shrink.limit, 0 )
+      counterexample <- find.smallest( tree, property, curry, shrink.limit, 0, discards, discard.limit )
 
-      # Print the message which comes with the counterexample.
+      # Rerun the smallest counterexample to grab the specific error
       test_error     <- run.prop( property, counterexample$smallest, curry )$test_error
 
-      # Print a nice message for the user.
+      # Make a nice error report for the user.
       rep            <- capture.output( print (
-                          report ( i, counterexample$shrinks, test_error, counterexample$smallest ))
-                        )
+                          report ( test, counterexample$shrinks, test_error, counterexample$smallest )
+                        ))
       # Exit the loop with failure, this will be picked up
       # by testthat and displayed nicely.
       return (fail( message = paste(rep, collapse = "\n") ))
@@ -77,8 +101,10 @@ forall <- function ( generator, property, tests = 100, size = 10, shrink.limit =
   succeed(message = paste("Passed after", tests, "tests\n"))
 }
 
-discard <- function(message = NULL) {
-  cond <- structure(list(message = message), class = c("discard", "condition"))
+#' Discard a test case
+#' @export
+discard <- function() {
+  cond <- structure(list(), class = c("discard", "condition"))
   stop(cond)
 }
 
@@ -93,13 +119,13 @@ discard <- function(message = NULL) {
 #   generated as individual arguments.
 # @param shrink.limit the limit to how far we will try and shrink
 # @param shrinks the current number of shrinks
-find.smallest <- function ( tree, property, single.argument, shrink.limit, shrinks ) {
+find.smallest <- function ( tree, property, single.argument, shrink.limit, shrinks, discards, discard.limit ) {
 
   # The smallest value so far.
   point    <- list ( smallest = tree$root, shrinks = shrinks )
 
   # If we've reached the shrink counter return.
-  if (shrinks >= shrink.limit)
+  if (shrinks >= shrink.limit || discards >= discard.limit)
     return( point )
 
   # We're looking further, so force the lazy tree's branches.
@@ -109,7 +135,11 @@ find.smallest <- function ( tree, property, single.argument, shrink.limit, shrin
   # This is a recursive depth first search, which assumes that no
   # branch in a child will fail if the root doesn't as well.
   smaller <- Find ( function( child ) {
-    !(run.prop( property, child$root, single.argument)$ok)
+    trial <- run.prop( property, child$root, single.argument )
+    if ( trial$discard ) {
+      discards <- discards + 1
+      F
+    } else !( trial$ok )
   }, children )
 
   # If there was nothing found, the the root must be the smallest
@@ -117,6 +147,6 @@ find.smallest <- function ( tree, property, single.argument, shrink.limit, shrin
   if (is.null(smaller)) {
     point
   } else {
-    find.smallest( smaller, property, single.argument, shrink.limit, shrinks + 1 )
+    find.smallest( smaller, property, single.argument, shrink.limit, shrinks + 1, discards, discard.limit )
   }
 }

@@ -16,7 +16,17 @@ test_that("forall inception expectation", {
     expect_failure ( expect_true(x) )
   )
   forall (T, function(x)
-    expect_success ( expect_true(x))
+    expect_success ( expect_true(x) )
+  )
+})
+
+test_that("Discarding 20% will reach test limit before discard limit and succeed", {
+  forall (gen.sample.int(10), function(x) if (x > 8) discard() else expect_true(T))
+})
+
+test_that("Discarding 80% will reach discard limit and fail", {
+  expect_failure (
+    forall (gen.sample.int(10), function(x) if (x > 2) discard() else expect_true(T))
   )
 })
 
@@ -43,6 +53,8 @@ test_that("error handling inside foralls", {
     forall (F, function(x) stop("Ouch"))
   )
 })
+
+
 #####################
 # Generator testing #
 #####################
@@ -73,6 +85,15 @@ test_that("all generators shrink soundly", {
           , b = gen.beta( 1,2 )
           )
     , function(u,g,b) expect_true(T)
+  )
+  expect_failure(
+    forall (
+        list( u = gen.unif( 0,10 )
+            , g = gen.gamma( shape = 2 )
+            , b = gen.beta( 1,2 )
+            )
+      , function(u,g,b) expect_true(F)
+    )
   )
 })
 
