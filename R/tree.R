@@ -8,7 +8,8 @@
 #' In general, one should not be required to
 #' use any of the functions from this module
 #' as the combinators in the gen module
-#' should be expressive enough.
+#' should be expressive enough (if they're
+#' not raise an issue).
 #'
 #' @param root
 #'   the root of the rose tree
@@ -50,6 +51,7 @@ tree <- function( root, children_ = list() ) {
 #' @rdname tree
 #' @export
 tree.map <- function ( f, x ) {
+  tree.check ( x )
   y <- f ( x$root )
   tree (
     root      = y
@@ -60,7 +62,9 @@ tree.map <- function ( f, x ) {
 #' @rdname tree
 #' @export
 tree.bind <- function ( f, x ) {
+  tree.check ( x )
   y <- f ( x$root )
+  tree.check ( y )
   tree (
     root      = y$root
   , children_ =
@@ -76,6 +80,8 @@ tree.bind <- function ( f, x ) {
 #' @rdname tree
 #' @export
 tree.liftA2 <- function ( f, x, y ) {
+  tree.check ( x )
+  tree.check ( y )
   z <- f ( x$root, y$root )
   tree (
     root      = z
@@ -92,6 +98,7 @@ tree.liftA2 <- function ( f, x, y ) {
 #' @rdname tree
 #' @export
 tree.expand <- function ( shrink, x ) {
+  tree.check ( x )
   node         <- x$root
   children     <- x$children
   tree( root = node,
@@ -123,7 +130,7 @@ tree.unfoldForest <- function ( shrink, a ) {
 #' @rdname tree
 #' @export
 tree.traverse <- function ( trees ) {
-  if (inherits( trees,"tree")) {
+  if (inherits( trees,"tree" )) {
     # We have a single tree.
     # This is all we need so we can return it.
     trees
@@ -212,4 +219,9 @@ tree.replicateS <- function ( num, ma, s, ...) {
       }
     , do.call(ma, cons(s, list(...))) )
   }
+}
+
+tree.check <- function ( x ) {
+  if (!inherits( x, "tree" ))
+    stop(paste0('`',x,'`, of class `', class(x),'`, is not a tree'))
 }

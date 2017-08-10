@@ -1,7 +1,7 @@
-hedgehog
+Hedgehog
 ========
 
-<img src="hedgehog-logo.png" width="307" align="right"/>
+<img src="vignettes/hedgehog-logo.png" width="307" align="right"/>
 
 > Hedgehog will eat all your bugs.
 
@@ -15,6 +15,7 @@ behaviour occurs.
 Features
 ========
 
+- Expressive property based testing
 - Integrated shrinking, shrinks obey invariants by construction.
 - Generators can be combined to build complex and interesting
   structures.
@@ -59,7 +60,7 @@ write one more property to thoroughly test this function.
 
 
 ```r
-test_that( "Reverse is associative",
+test_that( "Reversed of concatenation is flipped concatenation of reversed",
   forall( list( as = gen.c( gen.sample(1:100) )
               , bs = gen.c( gen.sample(1:100) ))
         , function(as,bs) expect_equal ( rev(c(as, bs)), c(rev(bs), rev(as)))
@@ -97,12 +98,12 @@ test_that( "Reverse is identity",
 ```
 
 This test says that the reverse of a vector should equal the vector,
-which is obviously not true for all vectors. Here, the counterexample
-is shrunk from an original test value, that is, the first test case
-encountered is not the error given, rather, when an error is encountered,
-hedgehog will shrink the error case to the smallest value it can  for
-which this doesn't hold is. Here, it's `c(1,2)`, and hedgehog has found
-this value and displayed it to the user.
+which is obviously not true for all vectors. Here, hedgehog has run
+this expectation with random input, and found it to not be true.
+Instead of reporting it directly, it has shrunk the bad test case to
+the smallest counterexample it could find: `c(1,2)`. Hedgehog then
+reëmits this test error to `testthat`, which handles it as per usual
+and displays it to the user.
 
 Generators
 ==========

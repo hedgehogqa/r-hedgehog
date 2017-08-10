@@ -5,7 +5,7 @@
 \title{Hedgehog property test}
 \usage{
 forall(generator, property, tests = 100, size = 10, shrink.limit = 1000,
-  curry = identical(class(generator), "list"))
+  discard.limit = 100, curry = identical(class(generator), "list"))
 }
 \arguments{
 \item{generator}{a generator or list of generators
@@ -23,9 +23,15 @@ it.}
 run when shrinking a value to find the smallest
 counterexample.}
 
+\item{discard.limit}{the maximum number of discards to
+permit when running the property.}
+
 \item{curry}{whether to curry the arguments passed
 to the property, and use do.call to use the list
-generated as individual arguments.}
+generated as individual arguments.
+When curry is on, the function arity should be the
+same as the length of the generated list.
+Defaults to T if the input is a list.}
 }
 \description{
 Check a property holds for all generated values.
