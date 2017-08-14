@@ -268,16 +268,19 @@ execute <- function ( state, env, action ) {
 #'   are to be run.
 #' @return an expectation.
 expect_sequential <- function ( initial.state, actions ) {
+  # Succeed ensures there is always at
+  # least one expectation. If there wasn't
+  # we could cause a "No expectations in
+  # property" error and shrink to 0 elements
+  # in the counterexample. This has to go first
+  # so any real expectations have their error
+  # message shown instead of "as expected".
+  testthat::succeed()
+
   Reduce (
     function( acc, action )
       execute( acc$state, acc$environment, action )
     , init = list( state = initial.state, environment = list() )
     , actions
   )
-  # Succeed ensures there is always at
-  # least one expectation. If there wasn't
-  # we could cause a "No expectations in
-  # property" error and shrink to 0 elements
-  # in the counterexample.
-  testthat::succeed()
 }

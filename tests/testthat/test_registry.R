@@ -1,4 +1,3 @@
-library(R6)
 library(hedgehog)
 
 context("Finite State Machine")
@@ -87,27 +86,31 @@ initialstate <- list()
 # Object oriented code under test #
 ###################################
 
-refs <- R6Class("Refs",
-  public = list(
-    newRef = function() {
-      private$num <- private$num + 1
-      private$refs[[private$num]] <- 0
-      return ( private$num )
-    }
-    , readRef = function(i) {
-      return ( private$refs[[i]] )
-    }
-    , writeRef = function(i, a) {
-      private$refs[[i]] <- a
-      NULL
-    }
-    , reset = function() {
-      private$num = 0
-      private$refs = list()
-      NULL
-    }
+refs <- setRefClass("Refs",
+    fields = list(
+        num = "numeric"
+      , refs = "list"
+      )
+  , methods = list(
+        initialize = function() .self$reset()
+      , newRef = function() {
+        .self$num <- .self$num + 1
+        .self$refs[[.self$num]] <- 0
+        return ( .self$num )
+      }
+      , readRef = function(i) {
+        return ( .self$refs[[i]] )
+      }
+      , writeRef = function(i, a) {
+        .self$refs[[i]] <- a
+        invisible(NULL)
+      }
+      , reset = function() {
+        .self$num = 0
+        .self$refs = list()
+        invisible(NULL)
+      }
     )
-  , private = list( num = 0 , refs = list() )
 )
 grefs <- refs$new()
 

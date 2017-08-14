@@ -197,7 +197,7 @@ identify inconsistencies between the true implementation and the
 model, from which the programmer can ask whether this is a bug in the
 model or a true bug in the system.
 
-John Hughes has a serious of excellent [talks][jh-dropbox] regarding
+John Hughes has a series of excellent [talks][jh-dropbox] regarding
 testing of state based and non-deterministic systems using QuviQ's
 proprietary QuickCheck implementation, which has been using these
 techniques to great effect for many years.
@@ -205,7 +205,7 @@ techniques to great effect for many years.
 Hedgehog's current implementation in R is still quite young, and
 not nearly as feature rich, but does still allow for interesting
 properties in stateful systems to be investigated. See the
-`state-machines` vignette for more information.
+[state-machines](state-machines.html) vignette for more information.
 
 
   [testthat]: https://github.com/hadley/testthat

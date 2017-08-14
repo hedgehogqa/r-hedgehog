@@ -55,6 +55,7 @@ of a lazy rose tree.
 In general, one should not be required to
 use any of the functions from this module
 as the combinators in the gen module
-should be expressive enough.
+should be expressive enough (if they're
+not raise an issue).
 }
 

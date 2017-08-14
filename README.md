@@ -221,34 +221,4 @@ test_that( "All data frames are of length 1",
 ## 2  1 10
 ```
 
-
-State Machine Testing
-=====================
-
-R is a multi-paradigm programming language, while all the tests we
-have seen so far have tested functions which have no side effects
-(pure functions).
-
-To deal with more complex situations which might arise in practice,
-Hedgehog also supports testing stateful system using a state machine
-model under random actions.
-
-The general idea is that we can generate a model of the system, with
-requirements and post-conditions for every action we can take. With
-a random sequence of actions, we can test our model of the system
-against the true implementation. Hedgehog will then be able to
-identify inconsistencies between the true implementation and the
-model, from which the programmer can ask whether this is a bug in the
-model or a true bug in the system.
-
-John Hughes has a serious of excellent [talks][jh-dropbox] regarding
-testing of state based and non-deterministic systems using QuviQ's
-proprietary QuickCheck implementation, which has been using these
-techniques to great effect for many years.
-
-Hedgehog's current implementation in R is still quite young, and
-not nearly as feature rich, but does still allow for interesting
-properties in stateful systems to be investigated.
-
   [testthat]: https://github.com/hadley/testthat
-  [jh-dropbox]: https://www.youtube.com/watch?v=H18vxq-VsCk
