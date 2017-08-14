@@ -19,17 +19,17 @@ report <- function ( tests, shrinks, message, counterexample ) {
   )
 }
 
-# Print information about a generator.
-print.report <- function ( report ) {
+#' @export
+print.report <- function ( x, ... ) {
     # Print a nice message for the user.
     # This could be moved into a fully fledged
     # report type.
-    cat ( paste("Falsifiable after", report$tests, "tests, and",  report$shrinks, "shrinks\n") )
+    cat ( paste("Falsifiable after", x$tests, "tests, and",  x$shrinks, "shrinks\n") )
 
     # Print the message which comes with the counterexample.
-    print ( report$message )
+    print ( x$message )
 
     # Show the counterexamples
     cat ( "Counterexample:\n")
-    print ( report$counterexample )
+    print ( x$counterexample )
 }

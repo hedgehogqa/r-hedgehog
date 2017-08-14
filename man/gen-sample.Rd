@@ -26,7 +26,7 @@ value and 1 respectively.
 }
 \examples{
 gen.sample(1:10)   # a number
-gen.sample(c(T,F)) # a boolean
+gen.sample(c(TRUE,FALSE)) # a boolean
 gen.sample.int(10) # a number up to 10
 
 }

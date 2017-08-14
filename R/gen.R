@@ -107,9 +107,9 @@ gen.example <- function ( g, size = 5 ) {
   gen.run ( g, size )
 }
 
-# Print information about a generator.
-print.gen <- function ( g ) {
-  example <- gen.example ( g )
+#' @export
+print.gen <- function ( x, ... ) {
+  example <- gen.example ( x )
   cat( "Hedgehog generator:\n" )
   cat( "A generator is a function which produces random trees\n" )
   cat( "using a size parameter to scale it.\n\n" )
@@ -186,7 +186,7 @@ gen.sized <- function ( f )
 #'
 #' @examples
 #' gen.sample(1:10)   # a number
-#' gen.sample(c(T,F)) # a boolean
+#' gen.sample(c(TRUE,FALSE)) # a boolean
 #' gen.sample.int(10) # a number up to 10
 #'
 #' @name gen-sample

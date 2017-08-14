@@ -15,19 +15,17 @@ symbolic <- function(var) {
   structure (var, class = c(class(var), "symbolic"))
 }
 
-# When we look at the output, indicate that this
-# value is a name.
-print.symbolic <- function ( var ) {
-  cat ( paste( "Var", var, "(symbolic)" ))
+#' @export
+print.symbolic <- function ( x, ... ) {
+  cat ( paste( "Var", x, "(symbolic)" ))
 }
 
-# Pretty printer for an action (this is what will)
-# be shown during shrinking.
-print.action <- function ( action ) {
-  cat ( action$title, "\n" )
+#' @export
+print.action <- function ( x, ... ) {
+  cat ( x$title, "\n" )
   cat ( "inputs:\n" )
-  print ( action$input )
-  cat ( paste ( "output variable:", action$output, "\n" ))
+  print ( x$input )
+  cat ( paste ( "output variable:", x$output, "\n" ))
 }
 
 
