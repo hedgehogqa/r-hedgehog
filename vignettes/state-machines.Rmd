@@ -10,7 +10,6 @@ vignette: >
 ---
 
 ```{r setup, echo = FALSE, message = FALSE}
-knitr::opts_chunk$set(error=TRUE)
 library(hedgehog)
 set.seed(1014)
 ```
@@ -89,8 +88,10 @@ We will define a hedgehog command which will be used to test the
 new  <- command ( "New",
     generator = function( state ) list()
   , execute   = function() grefs$newRef()
-  , update    = function( state, output )
-      snoc( state, list(key = output, val = 0))
+  , update    = function( state, output ) {
+      state[[length(state) + 1]] <- list(key = output, val = 0)
+      state
+    }
   )
 ```
 
@@ -253,7 +254,7 @@ writeIncorrect <- command ( "Write (Broken)",
 Now we'll run the expectation with the incorrect write function as
 well.
 
-```{r echo = T, message = F}
+```{r echo = T, message = F, error=TRUE}
 test_that( "Registry State Machine Model",
   forall( gen.actions ( initialmodel, list(new, read, write, writeIncorrect) ), function( actions ) {
     grefs$reset()
