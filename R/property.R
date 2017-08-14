@@ -32,7 +32,7 @@
 #' @importFrom testthat fail
 #'
 #' @examples
-#' test_that( "Reverse of reverse is identity",
+#' test_that( "Reverse and concatenate symmetry",
 #'   forall( list( as = gen.c( gen.sample(1:100) )
 #'               , bs = gen.c( gen.sample(1:100) ))
 #'         , function( as, bs )
@@ -89,12 +89,12 @@ forall <- function ( generator, property, tests = 100, size = 10, shrink.limit =
       test_error     <- run.prop( property, counterexample$smallest, curry )$test_error
 
       # Make a nice error report for the user.
-      rep            <- capture.output( print (
+      report_        <- capture.output( print (
                           report ( test, counterexample$shrinks, test_error, counterexample$smallest )
                         ))
       # Exit the loop with failure, this will be picked up
       # by testthat and displayed nicely.
-      return (fail( message = paste(rep, collapse = "\n") ))
+      return (fail( message = paste(report_, collapse = "\n") ))
     }
   }
 
@@ -135,11 +135,17 @@ find.smallest <- function ( tree, property, single.argument, shrink.limit, shrin
   # This is a recursive depth first search, which assumes that no
   # branch in a child will fail if the root doesn't as well.
   smaller <- Find ( function( child ) {
+    # Run the child.
     trial <- run.prop( property, child$root, single.argument )
+    # If it's a discard it's not a failing case.
+    # But we don't want to run too many, so increase
+    # a discard counter.
     if ( trial$discard ) {
       discards <- discards + 1
       F
-    } else !( trial$ok )
+    } else {
+      !( trial$ok )
+    }
   }, children )
 
   # If there was nothing found, the the root must be the smallest

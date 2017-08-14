@@ -44,7 +44,7 @@ argument and the whole construct will be treated
 as a generator.
 }
 \examples{
-test_that( "Reverse of reverse is identity",
+test_that( "Reverse and concatenate symmetry",
   forall( list( as = gen.c( gen.sample(1:100) )
               , bs = gen.c( gen.sample(1:100) ))
         , function( as, bs )
