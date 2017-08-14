@@ -12,6 +12,9 @@ vignette: >
 ```{r setup, echo = FALSE, message = FALSE}
 library(hedgehog)
 set.seed(1014)
+snoc <- function (xs, x) {
+  unlist ( list ( xs, list( x)) , recursive = F )
+}
 ```
 
 <img src="hedgehog-logo.png" width="307" align="right"/>
@@ -88,10 +91,8 @@ We will define a hedgehog command which will be used to test the
 new  <- command ( "New",
     generator = function( state ) list()
   , execute   = function() grefs$newRef()
-  , update    = function( state, output ) {
-      state[[length(state) + 1]] <- list(key = output, val = 0)
-      state
-    }
+  , update    = function( state, output )
+      snoc( state, list(key = output, val = 0))
   )
 ```
 
