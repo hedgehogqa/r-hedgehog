@@ -10,7 +10,6 @@ vignette: >
 ---
 
 ```{r setup, echo = FALSE, message = FALSE}
-knitr::opts_chunk$set(error=TRUE)
 library(hedgehog)
 set.seed(1014)
 ```
@@ -90,7 +89,7 @@ as a list of generators.
 Now let's look at an assertion which isn't true so we can see what our
 counterexamples looks like
 
-```{r echo = T, message = F}
+```{r echo = T, message = F, error=TRUE}
 test_that( "Reverse is identity",
   forall( gen.c( gen.sample(1:100) ), function(xs) expect_equal(rev(xs), c(xs)))
 )
@@ -121,7 +120,7 @@ This integrated shrinking property is a key component of hedgehog,
 and gives us an excellent chance of reducing to the minimum possible
 counterexample.
 
-```{r echo = T, message = F}
+```{r echo = T, message = F, error=TRUE}
 test_that( "a is less than b + 1",
   forall(list(a = gen.sample(1:100), b = gen.sample(1:100)), function(a, b) expect_lt( a, b + 1 ))
 )
@@ -165,7 +164,7 @@ test a property which is false in order to show how hedgehog
 will find the minimum shrink.
 
 
-```{r echo = T, message = F}
+```{r echo = T, message = F, error=TRUE}
 gen.df <-
   gen.with (
     gen.sample (1:100)
