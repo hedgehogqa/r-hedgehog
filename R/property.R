@@ -64,7 +64,7 @@ forall <- function ( generator, property, tests = 100, size = 10, shrink.limit =
   while ( test < tests ) {
     # Check if we have discarded too many trials
     if (discards >= discard.limit)
-      return (testthat::fail( message = "discard limit reached"))
+      return (fail( message = "discard limit reached"))
 
     # Run the test with error handling
     tree   <- gen.run ( generator, size )
@@ -114,12 +114,12 @@ discard <- function() {
 # @param tree the tree to search through for the smallest
 #   value which fails the test.
 # @param property the property which is failing
-# @param single.argument whether to pass only one
+# @param curry whether to pass only one
 #   to the property, or use do.call to use the list
 #   generated as individual arguments.
 # @param shrink.limit the limit to how far we will try and shrink
 # @param shrinks the current number of shrinks
-find.smallest <- function ( tree, property, single.argument, shrink.limit, shrinks, discards, discard.limit ) {
+find.smallest <- function ( tree, property, curry, shrink.limit, shrinks, discards, discard.limit ) {
 
   # The smallest value so far.
   point    <- list ( smallest = tree$root, shrinks = shrinks )
@@ -136,7 +136,7 @@ find.smallest <- function ( tree, property, single.argument, shrink.limit, shrin
   # branch in a child will fail if the root doesn't as well.
   smaller <- Find ( function( child ) {
     # Run the child.
-    trial <- run.prop( property, child$root, single.argument )
+    trial <- run.prop( property, child$root, curry )
     # If it's a discard it's not a failing case.
     # But we don't want to run too many, so increase
     # a discard counter.
@@ -153,6 +153,6 @@ find.smallest <- function ( tree, property, single.argument, shrink.limit, shrin
   if (is.null(smaller)) {
     point
   } else {
-    find.smallest( smaller, property, single.argument, shrink.limit, shrinks + 1, discards, discard.limit )
+    find.smallest( smaller, property, curry, shrink.limit, shrinks + 1, discards, discard.limit )
   }
 }
