@@ -2,19 +2,29 @@
 % Please edit documentation in R/gen.R
 \name{gen-sample}
 \alias{gen-sample}
+\alias{gen.one.of}
 \alias{gen.sample}
 \alias{gen.sample.int}
 \title{Random Sample Generation}
 \usage{
-gen.sample(x)
+gen.sample(x, prob = NULL)
 
-gen.sample.int(n)
+gen.sample.int(n, prob = NULL)
+
+gen.one.of(gens, prob = NULL)
 }
 \arguments{
-\item{x}{a list or vector to sample from.}
+\item{x}{A list or vector to sample from.}
 
-\item{n}{number which is the maximum integer
+\item{prob}{A vector of probability weights for
+obtaining the elements of the vector being
+sampled.}
+
+\item{n}{The Number which is the maximum integer
 sampled from.}
+
+\item{gens}{A list of generators to sample
+from}
 }
 \description{
 These methods are semantically related to
@@ -28,6 +38,7 @@ value and 1 respectively.
 gen.sample(1:10)   # a number
 gen.sample(c(TRUE,FALSE)) # a boolean
 gen.sample.int(10) # a number up to 10
+gen.one.of( list(gen.sample(1:10), gen.sample(letters)))
 
 }
 
