@@ -14,7 +14,7 @@
 #'   from the generator and tests some predicated against
 #'   it.
 #' @param tests the number of tests to run
-#' @param size the max size used for the generators
+#' @param size.limit the max size used for the generators
 #' @param shrink.limit the maximum number of shrinks to
 #'   run when shrinking a value to find the smallest
 #'   counterexample.
@@ -54,8 +54,16 @@
 #' # [1] 1 2
 #'
 #' @export
-forall <- function ( generator, property, tests = 100, size = 10, shrink.limit = 1000, discard.limit = 100, curry = identical(class(generator), "list")) {
+forall <- function ( generator
+                   , property
+                   , tests = getOption("hedgehog.tests", 100)
+                   , size.limit = getOption("hedgehog.size", 50)
+                   , shrink.limit = getOption("hedgehog.shrinks", 100)
+                   , discard.limit = getOption("hedgehog.discards", 100)
+                   , curry = identical(class(generator), "list")) {
 
+  # Starting size parameter
+  size     <- 1
   # Counters for the forall loop
   discards <- 0
   test     <- 0
@@ -96,6 +104,14 @@ forall <- function ( generator, property, tests = 100, size = 10, shrink.limit =
       # by testthat and displayed nicely.
       return (fail( message = paste(report_, collapse = "\n") ))
     }
+
+    # Increment the size or reset it if we've
+    # reached the size limit
+    if (size < size.limit) {
+      size <- size + 1
+    } else {
+      size <- 1
+    }
   }
 
   succeed(message = paste("Passed after", tests, "tests\n"))
@@ -124,7 +140,7 @@ find.smallest <- function ( tree, property, curry, shrink.limit, shrinks, discar
   # The smallest value so far.
   point    <- list ( smallest = tree$root, shrinks = shrinks )
 
-  # If we've reached the shrink counter return.
+  # If we've reached the shrink or discard limit return.
   if (shrinks >= shrink.limit || discards >= discard.limit)
     return( point )
 

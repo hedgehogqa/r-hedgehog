@@ -4,8 +4,11 @@
 \alias{forall}
 \title{Hedgehog property test}
 \usage{
-forall(generator, property, tests = 100, size = 10, shrink.limit = 1000,
-  discard.limit = 100, curry = identical(class(generator), "list"))
+forall(generator, property, tests = getOption("hedgehog.tests", 100),
+  size.limit = getOption("hedgehog.size", 50),
+  shrink.limit = getOption("hedgehog.shrinks", 100),
+  discard.limit = getOption("hedgehog.discards", 100),
+  curry = identical(class(generator), "list"))
 }
 \arguments{
 \item{generator}{a generator or list of generators
@@ -17,7 +20,7 @@ it.}
 
 \item{tests}{the number of tests to run}
 
-\item{size}{the max size used for the generators}
+\item{size.limit}{the max size used for the generators}
 
 \item{shrink.limit}{the maximum number of shrinks to
 run when shrinking a value to find the smallest
