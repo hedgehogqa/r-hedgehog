@@ -16,6 +16,19 @@
 #' find the cause of bugs, given salient examples when incorrect
 #' behaviour occurs.
 #'
+#' @section Options:
+#' - `hedgehog.tests`: Number of tests to run in each property
+#'     (Default: `100`).
+#'
+#' - `hedgehog.size`: Maximum size parameter to pass to generators
+#'     (Default: `50`).
+#'
+#' - `hedgehog.shrinks`: Maximum number of shrinks to search for
+#'     (Default: `100`).
+#'
+#' - `hedgehog.discards`:
+#'     (Default: `100`).
+#'
 #' @docType package
 #' @name hedgehog
 #' @references Campbell, H (2017). hedgehog: Property based testing in R
