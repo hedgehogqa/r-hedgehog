@@ -17,6 +17,11 @@
 #' In general, functions which accept a generator can also
 #' be provided with a list of generators nested arbitrarily.
 #'
+#' Generators which created from impure values (i.e., have
+#' randomness), can be created with `gen.impure`, which
+#' takes a function from `size` to a value. When using this
+#' the function will not shrink, so it is best composed
+#' `gen.shrink`.
 #'
 #' @param f
 #'   a function from a value to new generator, used to
@@ -29,11 +34,20 @@
 #' @param x
 #'   a value to use as a generator
 #' @param t
-#'   a function producing a tree from a size parameter
+#'   a function producing a tree from a size parameter, usually
+#'   an R function producing random values is used.
+#' @param fg
+#'   a function producing a single value from a size parameter
 #'
 #' @examples
 #' # To create a matrix
 #' gen.map( function(x) { matrix(x, ncol=3) }, gen.c.of(6, gen.sample(1:30)) )
+#'
+#' # To create a generator from a normal R random function
+#' # (this generator does not shrink).
+#' g <- gen.impure ( function(size) sample(1:10) )
+#' gen.example ( g )
+#' # [1]  5  6  3  4  8 10  2  7  9  1
 #'
 #' # Generating a vector whose length is defined by a generator
 #' g <- gen.with( gen.sample(2:100), function(x) gen.c.of( x, gen.sample(1:10)))
@@ -93,6 +107,12 @@ gen.bind <- function ( f, g ) {
 #' @export
 gen.pure <- function ( x ) {
   gen ( function ( size ) tree ( x ) )
+}
+
+#' @rdname gen-monad
+#' @export
+gen.impure <- function ( fg ) {
+  gen ( function(size) tree (fg(size)))
 }
 
 #' @rdname gen-monad
@@ -225,7 +245,7 @@ gen.sample <- function ( x, prob = NULL ) {
 gen.sample.int <- function ( n, prob = NULL ) {
   gen.shrink (
     shrink.towards(1)
-  , gen ( function( size ) { tree ( sample.int(n, 1, prob = prob) ) })
+  , gen.impure ( function( size ) { sample.int(n, 1, prob = prob) })
   )
 }
 
@@ -258,7 +278,7 @@ gen.one.of <- function ( gens, prob = NULL ) {
 gen.unif <- function ( from, to, shrink.median = T )
   gen.shrink(
     shrink.towards(qunif(ifelse ( shrink.median, 0.5, 0 ), from, to))
-  , gen ( function( size ) { tree ( runif( 1, from, to)) })
+  , gen.impure ( function( size ) runif( 1, from, to))
   )
 
 #' Generate a float with a gamma distribution
@@ -274,7 +294,7 @@ gen.unif <- function ( from, to, shrink.median = T )
 gen.gamma <- function ( shape, rate = 1, scale = 1/rate) {
   gen.shrink (
     shrink.towards(qgamma(0.5, shape, rate ))
-  , gen ( function( size ) { tree ( rgamma( 1, shape, rate )) })
+  , gen.impure ( function( size ) rgamma( 1, shape, rate ))
   )
 }
 
@@ -291,7 +311,7 @@ gen.gamma <- function ( shape, rate = 1, scale = 1/rate) {
 gen.beta <- function ( shape1, shape2, ncp = 0 ) {
   gen.shrink (
     shrink.towards(qbeta(0.5, shape1, shape2, ncp ))
-  , gen ( function( size ) { tree ( rbeta( 1, shape1, shape2, ncp )) })
+  , gen.impure ( function( size ) rbeta( 1, shape1, shape2, ncp ))
   )
 }
 

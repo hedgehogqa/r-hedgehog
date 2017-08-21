@@ -4,6 +4,7 @@
 \alias{gen}
 \alias{gen-monad}
 \alias{gen.bind}
+\alias{gen.impure}
 \alias{gen.map}
 \alias{gen.pure}
 \alias{gen.with}
@@ -17,10 +18,13 @@ gen.bind(f, g)
 
 gen.pure(x)
 
+gen.impure(fg)
+
 gen.map(m, g)
 }
 \arguments{
-\item{t}{a function producing a tree from a size parameter}
+\item{t}{a function producing a tree from a size parameter, usually
+an R function producing random values is used.}
 
 \item{g}{a generator to map or bind over}
 
@@ -29,6 +33,8 @@ build new generators monadically from a generator's
 output}
 
 \item{x}{a value to use as a generator}
+
+\item{fg}{a function producing a single value from a size parameter}
 
 \item{m}{a function to apply to values produced the generator}
 }
@@ -50,10 +56,22 @@ its value, but all shrinks should be deterministic.
 
 In general, functions which accept a generator can also
 be provided with a list of generators nested arbitrarily.
+
+Generators which created from impure values (i.e., have
+randomness), can be created with `gen.impure`, which
+takes a function from `size` to a value. When using this
+the function will not shrink, so it is best composed
+`gen.shrink`.
 }
 \examples{
 # To create a matrix
 gen.map( function(x) { matrix(x, ncol=3) }, gen.c.of(6, gen.sample(1:30)) )
+
+# To create a generator from a normal R random function
+# (this generator does not shrink).
+g <- gen.impure ( function(size) sample(1:10) )
+gen.example ( g )
+# [1]  5  6  3  4  8 10  2  7  9  1
 
 # Generating a vector whose length is defined by a generator
 g <- gen.with( gen.sample(2:100), function(x) gen.c.of( x, gen.sample(1:10)))

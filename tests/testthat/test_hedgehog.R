@@ -32,28 +32,45 @@ test_that("Discarding 80% will reach discard limit and fail", {
 
 test_that("forall fails if no expectations are given", {
   expect_failure (
-    forall (F, function(x) NULL)
+    forall (NULL, function(x) NULL)
   )
 })
 
 test_that("error handling inside foralls", {
   expect_success (
-    forall (F, function(x) {
+    forall (NULL, function(x) {
       warning("unheeded warning")
       succeed("ok")
     })
   )
   expect_success (
-    forall (F, function(x) {
+    forall (NULL, function(x) {
       message("unheeded message")
       succeed("ok")
     })
   )
   expect_failure (
-    forall (F, function(x) stop("Ouch"))
+    forall (NULL, function(x) {
+      stop("Ouch")
+      succeed("ok")
+    })
   )
 })
 
+test_that("forall permits multiple expectations", {
+  expect_failure (
+    forall (NULL, function(x) {
+      expect_true(T)
+      expect_true(F)
+    })
+  )
+  expect_success (
+    forall (NULL, function(x) {
+      expect_true(T)
+      expect_true(T)
+    })
+  )
+})
 
 #####################
 # Generator testing #
