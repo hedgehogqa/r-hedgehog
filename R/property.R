@@ -25,7 +25,7 @@
 #'   generated as individual arguments.
 #'   When curry is on, the function arity should be the
 #'   same as the length of the generated list.
-#'   Defaults to T if the input is a list.
+#'   Defaults to \code{T} if the input is a list.
 #'
 #' @importFrom utils capture.output
 #' @importFrom testthat succeed

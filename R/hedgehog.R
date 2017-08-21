@@ -26,7 +26,8 @@
 #' - `hedgehog.shrinks`: Maximum number of shrinks to search for
 #'     (Default: `100`).
 #'
-#' - `hedgehog.discards`:
+#' - `hedgehog.discards`: Maximum number of discards permitted
+#'     within a property test before failure
 #'     (Default: `100`).
 #'
 #' @docType package

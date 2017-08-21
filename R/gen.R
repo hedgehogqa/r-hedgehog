@@ -18,10 +18,10 @@
 #' be provided with a list of generators nested arbitrarily.
 #'
 #' Generators which created from impure values (i.e., have
-#' randomness), can be created with `gen.impure`, which
-#' takes a function from `size` to a value. When using this
-#' the function will not shrink, so it is best composed
-#' `gen.shrink`.
+#' randomness), can be created with \code{\link{gen.impure}},
+#' which takes a function from \code{size} to a value. When
+#' using this the function will not shrink, so it is best
+#' composed \code{\link{gen.shrink}}.
 #'
 #' @param f
 #'   a function from a value to new generator, used to
@@ -261,8 +261,8 @@ gen.one.of <- function ( gens, prob = NULL ) {
 #' Generate a float between the from
 #' and to the values specified.
 #'
-#' Shrinks towards the `from` value, or
-#' if shrink.median is on, the middle.
+#' Shrinks towards the \code{from} value, or
+#' if \code{shrink.median} is on, the middle.
 #'
 #' @export
 #' @importFrom stats runif qunif
