@@ -30,9 +30,19 @@ test_that("Discarding 80% will reach discard limit and fail", {
   )
 })
 
+test_that("The same generator really makes different values", {
+  g <- gen.sample.int(10)
+  expect_failure (
+    forall (g, function(x) expect_true(x < 5))
+  )
+  expect_failure (
+    forall (g, function(x) expect_true(x > 5))
+  )
+})
+
 test_that("forall fails if no expectations are given", {
   expect_failure (
-    forall (NULL, function(x) NULL)
+    forall (NULL, function(x) {})
   )
 })
 

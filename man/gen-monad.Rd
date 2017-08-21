@@ -58,10 +58,10 @@ In general, functions which accept a generator can also
 be provided with a list of generators nested arbitrarily.
 
 Generators which created from impure values (i.e., have
-randomness), can be created with `gen.impure`, which
-takes a function from `size` to a value. When using this
-the function will not shrink, so it is best composed
-`gen.shrink`.
+randomness), can be created with \code{\link{gen.impure}},
+which takes a function from \code{size} to a value. When
+using this the function will not shrink, so it is best
+composed \code{\link{gen.shrink}}.
 }
 \examples{
 # To create a matrix
