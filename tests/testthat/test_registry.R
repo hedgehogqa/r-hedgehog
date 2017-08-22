@@ -23,7 +23,7 @@ read <- command ( "Read",
       if ( length(state) == 0 )
         return(NULL)
       list(
-        pid = gen.map(function(i) i$pid, gen.sample( state ))
+        pid = gen.map(function(i) i$pid, gen.element( state ))
       )}
   , require = function( state, pid )
       !is.null ( Find( function( proc ) { proc$pid == pid } , state ) )
@@ -41,8 +41,8 @@ write <- command ( "Write",
       if ( length(state) == 0 )
         return(NULL)
       list (
-        pid = gen.map( function(i) i$pid, gen.sample( state ))
-      , val = gen.sample.int(10)
+        pid = gen.map( function(i) i$pid, gen.element( state ))
+      , val = gen.int(10)
       )}
   , require = function( state, pid, val )
       !is.null ( Find( function( proc ) { proc$pid == pid } , state ) )
@@ -60,7 +60,7 @@ inc <- command ( title = "Inc",
       if ( length(state) == 0 )
         return(NULL)
       list (
-        pid = gen.map( function(i) i$pid, gen.sample( state ))
+        pid = gen.map( function(i) i$pid, gen.element( state ))
       )}
 
   , require = function( state, pid )

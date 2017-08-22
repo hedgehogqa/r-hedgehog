@@ -16,6 +16,6 @@ Pass a function which takes an int and returns
 a gen.
 }
 \examples{
-gen.sized ( function(e) gen.sample(1:e) )
+gen.sized ( function(e) gen.element(1:e) )
 }
 

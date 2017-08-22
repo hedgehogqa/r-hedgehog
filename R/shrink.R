@@ -17,16 +17,16 @@
 #'
 #' shrink.towards (-50) (-26)
 #' # [-50,-38,-32,-29,-27]
-shrink.towards <- function ( destination ) {
-  function ( x ) {
-    if ( destination == x ) {
-      c()
-    } else {
-      # Halve the operands before subtracting them so they don't overflow.
-      diff <- x - destination
-      c(destination, x - shrink.halves (diff))
+shrink.towards <- function(destination) {
+    function(x) {
+        if (destination == x) {
+            c()
+        } else {
+            # Halve the operands before subtracting them so they don't overflow.
+            diff <- x - destination
+            c(destination, x - shrink.halves(diff))
+        }
     }
-  }
 }
 
 #' Shrink a number by dividing it into halves.
@@ -37,12 +37,12 @@ shrink.towards <- function ( destination ) {
 #' @examples
 #' shrink.towards(45)
 #' # 22 11  5  2  1
-shrink.halves <- function ( x ) {
-  if (abs(x) < 2) {
-    c()
-  } else {
-    c( x %/% 2, shrink.halves ( x %/% 2) )
-  }
+shrink.halves <- function(x) {
+    if (abs(x) < 2) {
+        c()
+    } else {
+        c(x%/%2, shrink.halves(x%/%2))
+    }
 }
 
 #' Shrink a list by edging towards the empty list.
@@ -50,13 +50,13 @@ shrink.halves <- function ( x ) {
 #' @export
 #' @param xs
 #'   the list to shrink
-shrink.list <- function ( xs ) {
-  len     <- length ( xs )
-  remnums <- shrink.halves ( len )
-  new     <- lapply ( c(len, remnums), function (rn) {
-    shrink.removes( rn, xs )
-  })
-  unlist( new, recursive = F )
+shrink.list <- function(xs) {
+    len <- length(xs)
+    remnums <- shrink.halves(len)
+    new <- lapply(c(len, remnums), function(rn) {
+        shrink.removes(rn, xs)
+    })
+    unlist(new, recursive = F)
 }
 
 #' Produce permutations of removing num elements from a list.
@@ -66,8 +66,8 @@ shrink.list <- function ( xs ) {
 #'   the number of values to drop
 #' @param xs
 #'   the list to shrink
-shrink.removes <- function ( num, xs ) {
-  lapply ( as.list( 1:(length(xs) - num + 1) ), function (s) {
-    xs[-c(s:(s+num-1))]
-  })
+shrink.removes <- function(num, xs) {
+    lapply(as.list(1:(length(xs) - num + 1)), function(s) {
+        xs[-c(s:(s + num - 1))]
+    })
 }

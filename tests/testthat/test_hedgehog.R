@@ -21,17 +21,17 @@ test_that("forall inception expectation", {
 })
 
 test_that("Discarding 20% will reach test limit before discard limit and succeed", {
-  forall (gen.sample.int(10), function(x) if (x > 8) discard() else expect_true(T))
+  forall (gen.int(10), function(x) if (x > 8) discard() else expect_true(T))
 })
 
 test_that("Discarding 80% will reach discard limit and fail", {
   expect_failure (
-    forall (gen.sample.int(10), function(x) if (x > 2) discard() else expect_true(T))
+    forall (gen.int(10), function(x) if (x > 2) discard() else expect_true(T))
   )
 })
 
 test_that("The same generator really makes different values", {
-  g <- gen.sample.int(10)
+  g <- gen.int(10)
   expect_failure (
     forall (g, function(x) expect_true(x < 5))
   )
@@ -87,20 +87,20 @@ test_that("forall permits multiple expectations", {
 #####################
 context("Hedgehog Generator testing")
 
-test_that("gen.sample.int only contains good values", {
-  forall (gen.sample.int(10), function(x) {
+test_that("gen.int only contains good values", {
+  forall (gen.int(10), function(x) {
     expect_true(x <= 10 && x >= 0)
   })
 })
 
-test_that("gen.sample only contains good values", {
-  forall (gen.sample(5:10), function(x) {
+test_that("gen.element only contains good values", {
+  forall (gen.element(5:10), function(x) {
     expect_true(x <= 10 && x >= 5)
   })
 })
 
-test_that("gen.sample produces single values from a list", {
-  forall (gen.sample(1:10), function(x) {
+test_that("gen.element produces single values from a list", {
+  forall (gen.element(1:10), function(x) {
     expect_true(x <= 10 && x >= 1)
   })
 })
@@ -125,15 +125,15 @@ test_that("all generators shrink soundly", {
 })
 
 test_that("can mix pure and generative in a list",
-  forall (list( lower = 2, higher = gen.sample(5:10)), function(lower, higher) {
+  forall (list( lower = 2, higher = gen.element(5:10)), function(lower, higher) {
     expect_less_than(lower, higher)
   })
 )
 
 test_that("can build data frames with structure", {
   g <- gen.structure (
-       list ( gen.c.of(4, gen.sample(2:10))
-            , gen.c.of(4, gen.sample(2:10))
+       list ( gen.c.of(4, gen.element(2:10))
+            , gen.c.of(4, gen.element(2:10))
             , c('a', 'b', 'c', 'd')
             )
        , names = c("a","b", "constant")
@@ -144,8 +144,8 @@ test_that("can build data frames with structure", {
 
 test_that("can build data frames with data.map", {
   g <- gen.map ( as.data.frame,
-       list ( as = gen.c.of(4, gen.sample(2:10))
-            , bs = gen.c.of(4, gen.sample(2:10))
+       list ( as = gen.c.of(4, gen.element(2:10))
+            , bs = gen.c.of(4, gen.element(2:10))
             , cs = c('a', 'b', 'c', 'd')
             ))
   forall( g, function(x) expect_equal(nrow(x), 4))
