@@ -34,7 +34,7 @@ to the property, and use do.call to use the list
 generated as individual arguments.
 When curry is on, the function arity should be the
 same as the length of the generated list.
-Defaults to T if the input is a list.}
+Defaults to \code{T} if the input is a list.}
 }
 \description{
 Check a property holds for all generated values.
@@ -48,18 +48,17 @@ as a generator.
 }
 \examples{
 test_that( "Reverse and concatenate symmetry",
-  forall( list( as = gen.c( gen.sample(1:100) )
-              , bs = gen.c( gen.sample(1:100) ))
+  forall( list( as = gen.c( gen.element(1:100) )
+              , bs = gen.c( gen.element(1:100) ))
         , function( as, bs )
             expect_identical ( rev(c(as, bs)), c(rev(bs), rev(as)))
   )
 )
-# TRUE
 
 # False example showing minimum shrink:
 \dontrun{
 test_that( "Reverse is identity",
-  forall ( gen.c( gen.sample(1:100)), function(x) { expect_identical ( rev(x), c(x) ) } )
+  forall ( gen.c( gen.element(1:100)), function(x) { expect_identical ( rev(x), c(x) ) } )
 )
 }
 # Falsifiable after 1 tests, and 5 shrinks

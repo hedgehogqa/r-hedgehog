@@ -22,10 +22,12 @@ print.symbolic <- function ( x, ... ) {
 
 #' @export
 print.action <- function ( x, ... ) {
-  cat ( x$title, "\n" )
-  cat ( "inputs:\n" )
-  print ( x$input )
-  cat ( paste ( "output variable:", x$output, "\n" ))
+  cat (x$title, "\n")
+  if (length(x$input) > 0) {
+    cat ("inputs:\n")
+    print(x$input)
+  }
+  cat(paste("output variable:", x$output, "\n"))
 }
 
 
@@ -75,13 +77,13 @@ command  <- function( title
                     , update  = function(state, output, ...) state
                     , ensure  = function(state, output, ...) NULL
                     ) {
-  gen_     <- match.fun ( generator )
-  execute_ <- match.fun ( execute )
-  require_ <- match.fun ( require )
-  update_  <- match.fun ( update )
-  ensure_  <- match.fun ( ensure )
+  gen_     <- match.fun(generator)
+  execute_ <- match.fun(execute)
+  require_ <- match.fun(require)
+  update_  <- match.fun(update)
+  ensure_  <- match.fun(ensure)
   structure (
-    list (
+    list(
         title   = title
       , gen     = gen_
       , execute = execute_
@@ -105,17 +107,17 @@ command  <- function( title
 #   values.
 # @return a reified structure holding concrete
 #   values.
-reify <- function( x, env ) {
-  if ( inherits( x, "symbolic") ) {
+reify <- function(x, env) {
+  if ( inherits(x, "symbolic") ) {
     # We have a single symbolic variable
     # Find it in the environment.
     env[[x]]
-  } else if ( is.list( x ) ) {
+  } else if (is.list( x )) {
     # We have a list which may contain
     # symbolic values.
     # Traverse over it, returning the
     # concrete version.
-    lapply ( x , function(x_) reify(x_, env) )
+    lapply (x , function(x_) reify(x_, env))
   } else {
     # Let constants be.
     x
@@ -136,33 +138,33 @@ reify <- function( x, env ) {
 #
 # @return a list, acc is the new state and counter
 #   as well as the action generated.
-gen.action <- function ( commands, state, counter ) {
-  possible <- Filter ( function(command) {
+gen.action <- function(commands, state, counter) {
+  possible <- Filter(function(command) {
     !is.null ( command$gen(state) )
   }, commands)
-  gen.with ( gen.sample( possible ), function (command) {
+  gen.with(gen.element( possible ), function (command) {
     # The (symbolic) input for the command.
     # Essentially this says which values it
     # will read from.
-    gen.map ( function(input) {
+    gen.map(function(input) {
       # Check the requires condition make sense.
       # These requires functions are needed to
       # ensure we have a good shrink.
-      require_ <- partial( command$require, state = state )
-      if (! do.call( require_, as.list( input ) ) )
-        stop ( "Command generation arguments voilate requirements" )
+      require_ <- partial(command$require, state = state)
+      if (!do.call(require_, as.list(input)))
+        stop("Command generation arguments voilate requirements")
 
       # Get a variable name we'll use for the output
       # We just use sequential values, as we'll add
       # them to the environment list here.
-      output   <- symbolic ( counter )
+      output   <- symbolic (counter)
 
       # Build a new state which we can work with
-      update_  <- partial( command$update, state = state, output = output)
-      state_   <- do.call( update_ , as.list( input ))
+      update_  <- partial(command$update, state = state, output = output)
+      state_   <- do.call(update_ , as.list( input ))
 
       # Build the action which can be run.
-      action_  <- structure(list (
+      action_  <- structure(list(
           title   = command$title
         , input   = input
         , output  = output
@@ -173,31 +175,32 @@ gen.action <- function ( commands, state, counter ) {
       ), class = "action")
 
       # Return the new symbolic state and the action to run.
-      list ( acc = list(state = state_, counter = counter + 1), action = action_ )
-    }, command$gen( state ))
+      list(acc = list(state = state_, counter = counter + 1), action = action_)
+    }, command$gen(state))
   })
 }
 
 # Returns the actions and it's updates to the state
 # only if they're currently valid.
-check.valid  <- function ( ok, state, action ) {
-  require_ <- partial( action$require, state = state )
-  if (do.call( require_, as.list( action$input ) )) {
-    update_ <- partial( action$update, state = state, output = action$output)
-    state_  <- do.call( update_ , as.list( action$input ))
-    list ( ok = snoc(ok, action), state = state_ )
+check.valid  <- function(ok, state, action) {
+  require_  <- partial(action$require, state = state)
+  if (do.call(require_, as.list(action$input))) {
+    update_ <- partial(action$update, state = state, output = action$output)
+    state_  <- do.call(update_ , as.list(action$input))
+    list(ok = snoc(ok, action), state = state_)
   } else {
-    list ( ok = ok, state = state )
+    list(ok = ok, state = state)
   }
 }
 
 # After shrinking we may have an inconsistent state.
 # Run the state, ensuring the requirements are still
 # good.
-drop.invalid <- function ( actions, initial.state ) {
-  Reduce ( function( acc, action ) {
+drop.invalid <- function(actions, initial.state) {
+  result <- Reduce(function(acc, action) {
     check.valid( acc$ok, acc$state, action )
-  }, actions, init = list(ok = list(), state = initial.state ))
+  }, actions, init = list(ok = list(), state = initial.state))
+  result$ok
 }
 
 #' Generate a list of possible actions.
@@ -214,16 +217,18 @@ drop.invalid <- function ( actions, initial.state ) {
 #' @importFrom purrr partial
 #'
 #' @return a list of actions to run during testing
-gen.actions <- function ( initial.state, commands ) {
-  run_ <- partial( gen.action, commands = commands )
-  gen.map (
-    function ( actions ) drop.invalid( actions, initial.state )$ok
-  , { g <-  gen ( function ( size ) {
-              tree.bind( function ( num ) {
-                tree.replicateS ( num, function(x) { run_(x$state, x$counter)$unGen(size) }, list(state = initial.state, counter = 1))
-              }, gen.sample.int(size)$unGen(size) )
+gen.actions <- function(initial.state, commands) {
+  run_ <- partial(gen.action, commands = commands)
+  gen.map(
+    function(actions) drop.invalid(actions, initial.state)
+  , { g <-  gen(function(size) {
+              tree.bind(function(num) {
+                tree.replicateS(num, function(x) {
+                  run_(x$state, x$counter)$unGen(size)
+                }, list(state = initial.state, counter = 1))
+              }, gen.int(size)$unGen(size) )
             })
-      gen.shrink ( shrink.list, g )
+      gen.shrink(shrink.list, g)
     }
   )
 }
@@ -238,7 +243,7 @@ gen.actions <- function ( initial.state, commands ) {
 #   output so far by the computation.
 # @param action the action to execute and check the
 #   results from.
-execute <- function ( state, env, action ) {
+execute <- function(state, env, action) {
   input   <- reify( action$input, env )
   output  <- do.call( action$execute, as.list(input) )
   update_ <- partial( action$update, state = state, output = output)
@@ -265,7 +270,7 @@ execute <- function ( state, env, action ) {
 #' @param actions the list of actions which
 #'   are to be run.
 #' @return an expectation.
-expect_sequential <- function ( initial.state, actions ) {
+expect_sequential <- function(initial.state, actions) {
   # Succeed ensures there is always at
   # least one expectation. If there wasn't
   # we could cause a "No expectations in
@@ -275,10 +280,9 @@ expect_sequential <- function ( initial.state, actions ) {
   # message shown instead of "as expected".
   testthat::succeed()
 
-  Reduce (
-    function( acc, action )
-      execute( acc$state, acc$environment, action )
-    , init = list( state = initial.state, environment = list() )
-    , actions
+  Reduce(
+    function(acc, action) execute(acc$state, acc$environment, action)
+  , init = list(state = initial.state, environment = list())
+  , actions
   )
 }

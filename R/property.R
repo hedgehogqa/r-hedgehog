@@ -33,18 +33,17 @@
 #'
 #' @examples
 #' test_that( "Reverse and concatenate symmetry",
-#'   forall( list( as = gen.c( gen.sample(1:100) )
-#'               , bs = gen.c( gen.sample(1:100) ))
+#'   forall( list( as = gen.c( gen.element(1:100) )
+#'               , bs = gen.c( gen.element(1:100) ))
 #'         , function( as, bs )
 #'             expect_identical ( rev(c(as, bs)), c(rev(bs), rev(as)))
 #'   )
 #' )
-#' # TRUE
 #'
 #' # False example showing minimum shrink:
 #' \dontrun{
 #' test_that( "Reverse is identity",
-#'   forall ( gen.c( gen.sample(1:100)), function(x) { expect_identical ( rev(x), c(x) ) } )
+#'   forall ( gen.c( gen.element(1:100)), function(x) { expect_identical ( rev(x), c(x) ) } )
 #' )
 #' }
 #' # Falsifiable after 1 tests, and 5 shrinks
@@ -54,13 +53,13 @@
 #' # [1] 1 2
 #'
 #' @export
-forall <- function ( generator
-                   , property
-                   , tests = getOption("hedgehog.tests", 100)
-                   , size.limit = getOption("hedgehog.size", 50)
-                   , shrink.limit = getOption("hedgehog.shrinks", 100)
-                   , discard.limit = getOption("hedgehog.discards", 100)
-                   , curry = identical(class(generator), "list")) {
+forall <- function( generator
+                  , property
+                  , tests = getOption("hedgehog.tests", 100)
+                  , size.limit = getOption("hedgehog.size", 50)
+                  , shrink.limit = getOption("hedgehog.shrinks", 100)
+                  , discard.limit = getOption("hedgehog.discards", 100)
+                  , curry = identical(class(generator), "list")) {
 
   # Starting size parameter
   size     <- 1

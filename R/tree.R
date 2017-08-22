@@ -148,7 +148,7 @@ tree.traverse <- function ( trees ) {
     # with an list accumulating in the fold.
     #
     # /Note/ This is *independent* (or applicative) shrinking,
-    # so shrinks canalternate between the positions in the
+    # so shrinks can alternate between the positions in the
     # list.
     merged  <- Reduce (
         function (acc, t) tree.liftA2 ( snoc, acc, t )
@@ -159,7 +159,7 @@ tree.traverse <- function ( trees ) {
     # The original list had structure to it (class, attributes...).
     # We have made a tree containing lists of the same shape, but
     # they don't currently have the attributes of the original.
-    # We can made the "structure" the same by mapping the list's
+    # We can make the "structure" the same by mapping the list's
     # attributes to all values in the tree.
     tree.map( function(m) { attributes(m) <- info; m }, merged )
   } else {

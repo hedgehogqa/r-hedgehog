@@ -57,15 +57,15 @@ its value, but all shrinks should be deterministic.
 In general, functions which accept a generator can also
 be provided with a list of generators nested arbitrarily.
 
-Generators which created from impure values (i.e., have
+Generators which are created from impure values (i.e., have
 randomness), can be created with \code{\link{gen.impure}},
 which takes a function from \code{size} to a value. When
 using this the function will not shrink, so it is best
-composed \code{\link{gen.shrink}}.
+composed with \code{\link{gen.shrink}}.
 }
 \examples{
 # To create a matrix
-gen.map( function(x) { matrix(x, ncol=3) }, gen.c.of(6, gen.sample(1:30)) )
+gen.map( function(x) { matrix(x, ncol=3) }, gen.c.of(6, gen.element(1:30)) )
 
 # To create a generator from a normal R random function
 # (this generator does not shrink).
@@ -74,12 +74,12 @@ gen.example ( g )
 # [1]  5  6  3  4  8 10  2  7  9  1
 
 # Generating a vector whose length is defined by a generator
-g <- gen.with( gen.sample(2:100), function(x) gen.c.of( x, gen.sample(1:10)))
+g <- gen.with( gen.element(2:100), function(x) gen.c.of( x, gen.element(1:10)))
 gen.example ( g )
 # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
 
 # Same as above, as @bind@ is @with@ with arguments flipped.
-g <- gen.bind( function(x) gen.c.of( x, gen.sample(1:10)), gen.sample(2:100))
+g <- gen.bind( function(x) gen.c.of( x, gen.element(1:10)), gen.element(2:100))
 gen.example ( g )
 # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
 }

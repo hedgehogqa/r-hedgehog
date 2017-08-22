@@ -14,10 +14,11 @@ generation functions}
 }
 \description{
 Samples from a generator or list of generators
-producing a (single) lazy tree rose tree.
+producing a (single) lazy rose tree.
 }
 \details{
 This is different to calling generarator$unGen(size)
 in that it also works on (nested) lists of generators
+and pure values.
 }
 

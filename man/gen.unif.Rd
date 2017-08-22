@@ -17,8 +17,8 @@ to the middle of the distribution
 instead of the low end.}
 }
 \description{
-Shrinks towards the `from` value, or
-if shrink.median is on, the middle.
+Shrinks towards the \code{from} value, or
+if \code{shrink.median} is on, the middle.
 }
 \examples{
 gen.unif(0, 1) # a float between 0 and 1
