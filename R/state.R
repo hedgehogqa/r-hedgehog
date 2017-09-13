@@ -250,7 +250,7 @@ execute <- function(state, env, action) {
   state_  <- do.call( update_ , as.list( input ))
   env[[action$output]] <- output
 
-  ensure_ <- partial( action$ensure, state = state, output = output)
+  ensure_ <- partial( action$ensure, state = state_, output = output)
   do.call( ensure_ , as.list( input ))
 
   list( state = state_
