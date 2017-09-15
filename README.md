@@ -34,7 +34,7 @@ should have. We'll be testing the `rev` function from
 
 ```r
 test_that( "Reverse of reverse is identity",
-  forall( gen.c( gen.sample(1:100) ), function(xs) expect_equal(rev(rev(xs)), xs))
+  forall( gen.c( gen.element(1:100) ), function(xs) expect_equal(rev(rev(xs)), xs))
 )
 ```
 
@@ -61,8 +61,8 @@ write one more property to thoroughly test this function.
 
 ```r
 test_that( "Reversed of concatenation is flipped concatenation of reversed",
-  forall( list( as = gen.c( gen.sample(1:100) )
-              , bs = gen.c( gen.sample(1:100) ))
+  forall( list( as = gen.c( gen.element(1:100) )
+              , bs = gen.c( gen.element(1:100) ))
         , function(as,bs) expect_equal ( rev(c(as, bs)), c(rev(bs), rev(as)))
   )
 )
@@ -81,7 +81,7 @@ counterexamples looks like
 
 ```r
 test_that( "Reverse is identity",
-  forall( gen.c( gen.sample(1:100) ), function(xs) expect_equal(rev(xs), c(xs)))
+  forall( gen.c( gen.element(1:100) ), function(xs) expect_equal(rev(xs), c(xs)))
 )
 ```
 
@@ -139,7 +139,7 @@ counterexample.
 
 ```r
 test_that( "a is less than b + 1",
-  forall(list(a = gen.sample(1:100), b = gen.sample(1:100)), function(a, b) expect_lt( a, b + 1 ))
+  forall(list(a = gen.element(1:100), b = gen.element(1:100)), function(a, b) expect_lt( a, b + 1 ))
 )
 ```
 
@@ -156,7 +156,7 @@ test_that( "a is less than b + 1",
 ## [1] 1
 ```
 
-The generators `gen.c`, `gen.sample`, and `gen.unif`, are related to
+The generators `gen.c`, `gen.element`, and `gen.unif`, are related to
 standard R functions: `c`, to create a vector; `sample`, to sample
 from a list or vector; and `runif`, to sample from a uniform
 distribution. We try to maintain a relationship to R's well known
@@ -179,8 +179,8 @@ lists of length `n`, then turn them into a `data.frame` with `gen.map`.
 gen.df.of <- function ( n )
   gen.map (
     as.data.frame,
-    list( as = gen.c.of(n, gen.sample(1:10) )
-        , bs = gen.c.of(n, gen.sample(10:20) )
+    list( as = gen.c.of(n, gen.element(1:10) )
+        , bs = gen.c.of(n, gen.element(10:20) )
         )
     )
 
@@ -199,7 +199,7 @@ will find the minimum shrink.
 ```r
 gen.df <-
   gen.with (
-    gen.sample (1:100)
+    gen.element (1:100)
     , gen.df.of
   )
 
