@@ -281,10 +281,34 @@ gen.subsequence <- function(x) {
 #' @rdname gen-element
 #' @export
 gen.sample <- function(x, size, replace = FALSE, prob = NULL) {
-    gen.with( size, function(size_) {
-      gen.impure(function(g_size) {
-        sample(x, size_, replace = replace, prob = prob)
-      })
+    # This needs a clean up
+
+    # If size isn't specified, then we'll use the length
+    # This is the sample behaviour of sample
+    arg.size <- if (missing(size)) length(x) else size
+
+    # Helper function which partially sorts the indicies
+    # selected by the main function.
+    # This is a bit of an inefficient way of shrinking.
+    reorder <- function(xs) {
+      mat <- combn(1:length(xs), 2)
+      tst <- lapply(as.list(1:ncol(mat)),
+        function(col) mat[,col]
+      )
+      pos <- lapply(Filter(function(y) xs[y[1]] > xs[y[2]], tst), sort)
+      lapply(pos, function(s) { t <- xs; t[s] <- t[rev(s)]; t })
+    }
+
+    # Monadic generator here as we can permit the size
+    # argument to be a generator.
+    gen.with(arg.size, function(size_) {
+      gen.map(function(inds) x[inds],
+        gen.shrink(reorder,
+          gen.impure(function(g_size) {
+            sample.int(length(x), size_, replace = replace, prob = prob)
+          })
+        )
+      )
     })
 }
 
