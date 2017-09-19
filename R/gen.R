@@ -212,8 +212,8 @@ gen.sized <- function(f) {
 #' @param n The number which is the maximum integer
 #'   sampled from.
 #' @param replace Should sampling be with replacement?
-#' @param a non-negative integer or a generator of one,
-#'   giving the number of items to choose.
+#' @param size a non-negative integer or a generator of
+#'   one, giving the number of items to choose.
 #' @param prob A vector of probability weights for
 #'   obtaining the elements of the vector being
 #'   sampled.
@@ -281,37 +281,80 @@ gen.subsequence <- function(x) {
 #' @rdname gen-element
 #' @export
 gen.sample <- function(x, size, replace = FALSE, prob = NULL) {
+    # If size isn't specified, then we'll use the length
+    # This is the sample behaviour of sample
+    arg.size <- if (missing(size)) length(x) else size
+
+    # Monadic generator here so we can permit the size
+    # argument to be a generator.
+    gen.with(arg.size, function(size_) {
+      gen.map(function(inds) x[inds],
+        gen.sample.int(length(x), size_, replace = replace, prob = prob )
+      )
+    })
+}
+
+#' @rdname gen-element
+#' @export
+#' @importFrom utils combn
+gen.sample.int <- function(n, size, replace = FALSE, prob = NULL) {
     # This needs a clean up
 
     # If size isn't specified, then we'll use the length
     # This is the sample behaviour of sample
-    arg.size <- if (missing(size)) length(x) else size
+    arg.size <- if (missing(size)) n else size
 
     # Helper function which partially sorts the indicies
     # selected by the main function.
     # This is a bit of an inefficient way of shrinking.
     reorder <- function(xs) {
-      mat <- combn(1:length(xs), 2)
+      c(reorder.halves(xs), reorder.bubble(xs))
+    }
+
+    # Reorder function which shrinks the list, leaving a progressively
+    # larger unsorted tail.
+    reorder.halves <- function(xs) {
+        # Halves to shrink, reversed, as we want to try the sorted variant
+        # first.
+        halves <- rev(as.list(length(xs) - c(shrink.halves(length(xs)), 0)))
+        # For each length, sort the first half, and leave the second half
+        # unsorted
+        trials <- lapply(halves, function(h) c(sort(xs[c(1:h)]), xs[-c(1:h)]))
+        # So we don't loop infinitely, ensure that we actually
+        # reordered the list
+        Filter( function(ys) !identical( xs, ys ), trials)
+    }
+
+    # Reorder function which swaps the positions of two elements.
+    # Can be a bit slow, so has an upper limit to the size of
+    # lists to which it is applied.
+    reorder.bubble <- function(xs) {
+      # Don't try if it's too big.
+      if (length(xs) > 30)
+        return(xs[c()])
+
+      # Generate all possible pairs
+      mat <- combn(seq_along(xs), 2)
       tst <- lapply(as.list(1:ncol(mat)),
         function(col) mat[,col]
       )
+
+      # If the first index is bigger than the second, we can
+      # swap them to get a shrink.
       pos <- lapply(Filter(function(y) xs[y[1]] > xs[y[2]], tst), sort)
       lapply(pos, function(s) { t <- xs; t[s] <- t[rev(s)]; t })
     }
 
-    # Monadic generator here as we can permit the size
+    # Monadic generator here so we can permit the size
     # argument to be a generator.
     gen.with(arg.size, function(size_) {
-      gen.map(function(inds) x[inds],
-        gen.shrink(reorder,
-          gen.impure(function(g_size) {
-            sample.int(length(x), size_, replace = replace, prob = prob)
-          })
-        )
+      gen.shrink(reorder,
+        gen.impure(function(g_size) {
+          sample.int(n, size_, replace = replace, prob = prob)
+        })
       )
     })
 }
-
 #' Generate a float between the from
 #' and to the values specified.
 #'
