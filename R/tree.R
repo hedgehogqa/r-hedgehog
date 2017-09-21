@@ -34,7 +34,6 @@
 NULL
 
 #' @rdname tree
-#' @export
 tree <- function( root, children_ = list() ) {
   eval.children <- NULL
   structure(
@@ -49,7 +48,6 @@ tree <- function( root, children_ = list() ) {
 }
 
 #' @rdname tree
-#' @export
 tree.map <- function ( f, x ) {
   tree.check ( x )
   y <- f ( x$root )
@@ -60,7 +58,6 @@ tree.map <- function ( f, x ) {
 }
 
 #' @rdname tree
-#' @export
 tree.bind <- function ( f, x ) {
   tree.check ( x )
   y <- f ( x$root )
@@ -78,7 +75,6 @@ tree.bind <- function ( f, x ) {
 }
 
 #' @rdname tree
-#' @export
 tree.liftA2 <- function ( f, x, y ) {
   tree.check ( x )
   tree.check ( y )
@@ -96,7 +92,6 @@ tree.liftA2 <- function ( f, x, y ) {
 }
 
 #' @rdname tree
-#' @export
 tree.expand <- function ( shrink, x ) {
   tree.check ( x )
   node         <- x$root
@@ -113,7 +108,6 @@ tree.expand <- function ( shrink, x ) {
 }
 
 #' @rdname tree
-#' @export
 tree.unfold <- function ( shrink, a ) {
   tree (
     root     = a
@@ -122,13 +116,11 @@ tree.unfold <- function ( shrink, a ) {
 }
 
 #' @rdname tree
-#' @export
 tree.unfoldForest <- function ( shrink, a ) {
   lapply ( shrink ( a ), function( y ) { tree.unfold ( shrink, y )  } )
 }
 
 #' @rdname tree
-#' @export
 tree.traverse <- function ( trees ) {
   if (inherits( trees,"tree" )) {
     # We have a single tree.
@@ -191,7 +183,6 @@ tree.traverse <- function ( trees ) {
 NULL
 
 #' @rdname tree.replicate
-#' @export
 tree.replicate <- function ( num, ma, ...) {
   if ( num <= 0) {
     tree ( list() )
@@ -205,7 +196,6 @@ tree.replicate <- function ( num, ma, ...) {
 }
 
 #' @rdname tree.replicate
-#' @export
 tree.replicateS <- function ( num, ma, s, ...) {
   if ( num <= 0) {
     tree ( list() )

@@ -308,7 +308,7 @@ gen.sample.int <- function(n, size, replace = FALSE, prob = NULL) {
     # selected by the main function.
     # This is a bit of an inefficient way of shrinking.
     reorder <- function(xs) {
-      c(reorder.halves(xs), reorder.bubble(xs))
+      unique(c(reorder.halves(xs), reorder.bubble(xs)))
     }
 
     # Reorder function which shrinks the list, leaving a progressively

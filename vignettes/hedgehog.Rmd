@@ -107,22 +107,24 @@ Generators
 ==========
 
 Hedgehog exports some basic generators and plenty of combinators for
-making new generators. Here's an example which produces a floating
-point value between -10 and 10, shrinking to the median 0.
+making new generators. Here's an example analogous to calling `sample`
+on a small list, using the hedgehog generator `gen.sample`:
 
 ```{r echo = T, message = F}
-gen.unif( from = -10, to = 10 )
+gen.sample(1:5)
 ```
 
-Although only three possible shrinks are shown above, these are
-actually just the first layer of a rose tree of possible shrinks.
+This generator shrinks back towards the original list ordering the
+user supplied. Although only a few  shrinks are shown above, these
+are actually just the first layer of a rose tree of possible shrinks.
 This integrated shrinking property is a key component of hedgehog,
 and gives us an excellent chance of reducing to the minimum possible
 counterexample.
 
 ```{r echo = T, message = F, error=TRUE}
 test_that( "a is less than b + 1",
-  forall(list(a = gen.element(1:100), b = gen.element(1:100)), function(a, b) expect_lt( a, b + 1 ))
+    forall(list(a = gen.element(1:100), b = gen.unif(1,100, shrink.median = F))
+  , function(a, b) expect_lt( a, b + 1 ))
 )
 ```
 
