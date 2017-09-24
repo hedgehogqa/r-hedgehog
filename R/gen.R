@@ -206,15 +206,14 @@ gen.sized <- function(f) {
 #'
 #' These generators implement shrinking.
 #'
-#' @param x A list or vector to sample an element from.
-#' @param gens A list of generators to sample
-#'   from
-#' @param n The number which is the maximum integer
+#' @param x a list or vector to sample an element from.
+#' @param ... generators to sample from
+#' @param n the number which is the maximum integer
 #'   sampled from.
 #' @param replace Should sampling be with replacement?
 #' @param size a non-negative integer or a generator of
 #'   one, giving the number of items to choose.
-#' @param prob A vector of probability weights for
+#' @param prob a vector of probability weights for
 #'   obtaining the elements of the vector being
 #'   sampled.
 #'
@@ -222,7 +221,8 @@ gen.sized <- function(f) {
 #' gen.element(1:10)   # a number
 #' gen.element(c(TRUE,FALSE)) # a boolean
 #' gen.int(10) # a number up to 10
-#' gen.choice(list(gen.element(1:10), gen.element(letters)))
+#' gen.choice(gen.element(1:10), gen.element(letters))
+#' gen.choice(NaN, Inf, gen.unif(-10, 10), prob = c(1,1,10))
 #'
 #' @return \code{gen.element} returns an item from the list
 #'   or vector; \code{gen.int}, an integer up to the value
@@ -262,7 +262,8 @@ gen.int <- function(n, prob = NULL) {
 
 #' @rdname gen-element
 #' @export
-gen.choice <- function(gens, prob = NULL) {
+gen.choice <- function(..., prob = NULL) {
+    gens <- list(...)
     gen.bind(function(i) gens[[i]], gen.int(length(gens), prob = prob))
 }
 
