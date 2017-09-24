@@ -14,7 +14,7 @@ gen.element(x, prob = NULL)
 
 gen.int(n, prob = NULL)
 
-gen.choice(gens, prob = NULL)
+gen.choice(..., prob = NULL)
 
 gen.subsequence(x)
 
@@ -23,17 +23,16 @@ gen.sample(x, size, replace = FALSE, prob = NULL)
 gen.sample.int(n, size, replace = FALSE, prob = NULL)
 }
 \arguments{
-\item{x}{A list or vector to sample an element from.}
+\item{x}{a list or vector to sample an element from.}
 
-\item{prob}{A vector of probability weights for
+\item{prob}{a vector of probability weights for
 obtaining the elements of the vector being
 sampled.}
 
-\item{n}{The number which is the maximum integer
+\item{n}{the number which is the maximum integer
 sampled from.}
 
-\item{gens}{A list of generators to sample
-from}
+\item{...}{generators to sample from}
 
 \item{size}{a non-negative integer or a generator of
 one, giving the number of items to choose.}
@@ -68,7 +67,8 @@ These generators implement shrinking.
 gen.element(1:10)   # a number
 gen.element(c(TRUE,FALSE)) # a boolean
 gen.int(10) # a number up to 10
-gen.choice(list(gen.element(1:10), gen.element(letters)))
+gen.choice(gen.element(1:10), gen.element(letters))
+gen.choice(NaN, Inf, gen.unif(-10, 10), prob = c(1,1,10))
 
 }
 

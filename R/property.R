@@ -74,7 +74,7 @@ forall <- function( generator
       return (fail( message = "discard limit reached"))
 
     # Run the test with error handling
-    tree   <- gen.run ( generator, size )
+    tree   <- gen.run( generator, size )
     run    <- run.prop( property, tree$root, curry )
 
     # Check for a discard. If we're discarding, we won't increment the test
@@ -96,8 +96,8 @@ forall <- function( generator
       test_error     <- run.prop( property, counterexample$smallest, curry )$test_error
 
       # Make a nice error report for the user.
-      report_        <- capture.output( print (
-                          report ( test, counterexample$shrinks, test_error, counterexample$smallest )
+      report_        <- capture.output(print(
+                          report( test, counterexample$shrinks, test_error, counterexample$smallest )
                         ))
       # Exit the loop with failure, this will be picked up
       # by testthat and displayed nicely.
