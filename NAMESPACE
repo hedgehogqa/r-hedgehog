@@ -2,8 +2,8 @@
 
 S3method(print,action)
 S3method(print,gen)
+S3method(print,hedgehog.internal.symbolic)
 S3method(print,report)
-S3method(print,symbolic)
 export(command)
 export(discard)
 export(expect_sequential)
