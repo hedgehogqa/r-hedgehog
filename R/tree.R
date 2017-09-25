@@ -44,7 +44,7 @@ tree <- function( root, children_ = list() ) {
           eval.children <<- force(children_)
         eval.children
       }
-    ), class = "tree")
+    ), class = "hedgehog.internal.tree")
 }
 
 #' @rdname tree
@@ -122,7 +122,7 @@ tree.unfoldForest <- function ( shrink, a ) {
 
 #' @rdname tree
 tree.sequence <- function ( trees ) {
-  if (inherits( trees,"tree" )) {
+  if (inherits( trees,"hedgehog.internal.tree" )) {
     # We have a single tree.
     # This is all we need so we can return it.
     trees
@@ -212,6 +212,6 @@ tree.replicateS <- function ( num, ma, s, ...) {
 }
 
 tree.check <- function ( x ) {
-  if (!inherits( x, "tree" ))
+  if (!inherits( x, "hedgehog.internal.tree" ))
     stop(paste0('`',x,'`, of class `', class(x),'`, is not a tree'))
 }

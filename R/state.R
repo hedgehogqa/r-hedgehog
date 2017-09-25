@@ -12,11 +12,11 @@
 #'
 #' @param var the integer output indicator.
 symbolic <- function(var) {
-  structure (var, class = c(class(var), "symbolic"))
+  structure (var, class = c(class(var), "hedgehog.internal.symbolic"))
 }
 
 #' @export
-print.symbolic <- function ( x, ... ) {
+print.hedgehog.internal.symbolic <- function ( x, ... ) {
   cat ( paste( "Var", x, "(symbolic)" ))
 }
 
@@ -108,7 +108,7 @@ command  <- function( title
 # @return a reified structure holding concrete
 #   values.
 reify <- function(x, env) {
-  if ( inherits(x, "symbolic") ) {
+  if ( inherits(x, "hedgehog.internal.symbolic") ) {
     # We have a single symbolic variable
     # Find it in the environment.
     env[[x]]

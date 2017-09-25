@@ -63,7 +63,7 @@ NULL
 
 #' @rdname gen-monad
 gen <- function(t) {
-    structure(list(unGen = t), class = "gen")
+    structure(list(unGen = t), class = "hedgehog.internal.gen")
 }
 
 #' Run a generator
@@ -530,7 +530,7 @@ gen.list <- function(generator, from = 1, to = NULL) {
 # @param generator the generator ( or list of generators )
 # @param size the size parameter to use
 unfoldgenerator <- function(generator, size) {
-    if (inherits(generator, "gen")) {
+    if (inherits(generator, "hedgehog.internal.gen")) {
         # A generator can be run and turned into a tree
         generator$unGen(size)
     } else if (is.list(generator)) {
