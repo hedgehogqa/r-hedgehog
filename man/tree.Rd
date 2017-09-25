@@ -6,7 +6,7 @@
 \alias{tree.expand}
 \alias{tree.liftA2}
 \alias{tree.map}
-\alias{tree.traverse}
+\alias{tree.sequence}
 \alias{tree.unfold}
 \alias{tree.unfoldForest}
 \title{Lazy rose trees}
@@ -25,7 +25,7 @@ tree.unfold(shrink, a)
 
 tree.unfoldForest(shrink, a)
 
-tree.traverse(trees)
+tree.sequence(trees)
 }
 \arguments{
 \item{root}{the root of the rose tree}
