@@ -2,8 +2,7 @@
 % Please edit documentation in R/gen.R
 \name{gen.c}
 \alias{gen.c}
-\title{Generate a vector of primitive values
-from a generator}
+\title{Generate a vector of values from a generator}
 \usage{
 gen.c(generator, from = 1, to = NULL)
 }
@@ -17,7 +16,6 @@ elements}
 elements ( defaults to size if NULL )}
 }
 \description{
-Generate a vector of primitive values
-from a generator
+Generate a vector of values from a generator
 }
 

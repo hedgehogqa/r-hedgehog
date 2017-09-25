@@ -81,7 +81,7 @@ gen <- function(t) {
 #'   generation functions
 gen.run <- function(generator, size) {
     trees <- unfoldgenerator(generator, size)
-    tree  <- tree.traverse(trees)
+    tree  <- tree.sequence(trees)
     tree
 }
 
@@ -460,8 +460,7 @@ gen.no.shrink <- function(g) {
     })
 }
 
-#' Generate a vector of primitive values
-#' from a generator
+#' Generate a vector of values from a generator
 #'
 #' @export
 #'
@@ -471,7 +470,7 @@ gen.no.shrink <- function(g) {
 #' @param to maximum length of the list of
 #'   elements ( defaults to size if NULL )
 gen.c <- function(generator, from = 1, to = NULL) {
-    gen.map(unlist, gen.list(generator, from, to))
+    gen.map(function(xs) do.call(c,xs), gen.list(generator, from, to))
 }
 
 #' Generate a vector of primitive values
@@ -482,7 +481,7 @@ gen.c <- function(generator, from = 1, to = NULL) {
 #' @param number length of vector to generate
 #' @param generator a generator used for vector elements
 gen.c.of <- function(number, generator) {
-    gen.map(unlist, gen.list.of(number, generator))
+    gen.map(function(xs) do.call(c,xs), gen.list.of(number, generator))
 }
 
 #' Generate a list of values with fixed length
@@ -521,10 +520,15 @@ gen.list <- function(generator, from = 1, to = NULL) {
     })
 }
 
-# Turn a generator into a tree and a list of generators into a list of trees.
-# Non-generator and list values are passed along as is.  Generators can use the
-# random number generator when creating their trees.  @param generator the
-# generator ( or list of generators ) @param size the size parameter to use
+# Turn a generator into a tree and a list of generators
+# into a list of trees.
+#
+# Non-generator and list values are passed along as is.
+# Generators can use the random number generator when
+# creating their trees.
+#
+# @param generator the generator ( or list of generators )
+# @param size the size parameter to use
 unfoldgenerator <- function(generator, size) {
     if (inherits(generator, "gen")) {
         # A generator can be run and turned into a tree

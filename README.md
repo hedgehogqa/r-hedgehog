@@ -15,7 +15,7 @@ behaviour occurs.
 Features
 ========
 
-- Expressive property based testing
+- Expressive property based testing.
 - Integrated shrinking, shrinks obey invariants by construction.
 - Generators can be combined to build complex and interesting
   structures.

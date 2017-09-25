@@ -121,7 +121,7 @@ tree.unfoldForest <- function ( shrink, a ) {
 }
 
 #' @rdname tree
-tree.traverse <- function ( trees ) {
+tree.sequence <- function ( trees ) {
   if (inherits( trees,"tree" )) {
     # We have a single tree.
     # This is all we need so we can return it.
@@ -133,11 +133,11 @@ tree.traverse <- function ( trees ) {
 
     # Recursively call tree.traverse on the list so all
     # values in the list are now actually trees.
-    lowered <- lapply ( trees, tree.traverse )
+    lowered <- lapply ( trees, tree.sequence )
 
     # Reduce the list of trees into a single tree by folding
-    # over it with a bind (this is essentially a foldM).
-    # with an list accumulating in the fold.
+    # over it with a liftA2 with an list accumulating in the
+    # fold.
     #
     # /Note/ This is *independent* (or applicative) shrinking,
     # so shrinks can alternate between the positions in the
@@ -148,7 +148,7 @@ tree.traverse <- function ( trees ) {
       , tree(list())
       )
 
-    # The original list had structure to it (class, attributes...).
+    # The original list had structure to it (attributes...).
     # We have made a tree containing lists of the same shape, but
     # they don't currently have the attributes of the original.
     # We can make the "structure" the same by mapping the list's
