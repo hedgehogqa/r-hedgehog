@@ -13,7 +13,7 @@ gen.structure(x, ...)
 attached to generated data.}
 }
 \description{
-If you can create an object with `structure`,
+If you can create an object with \code{structure},
 you should be able to generate an object with
 this function from a generator or list of
 generators.
