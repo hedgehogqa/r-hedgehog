@@ -1,0 +1,9 @@
+^README\.md$
+^.*\.Rproj$
+^\.Rproj\.user$
+^NEWS\.md$
+^extras$
+^.*\.toml$
+^\.travis\.yml$
+^README\.Rmd$
+^README-.*\.png$
