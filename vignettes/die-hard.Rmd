@@ -1,0 +1,155 @@
+---
+title: "Hedgehog - Die Hard Water Jugs"
+author: "Huw Campbell"
+date: "`r Sys.Date()`"
+output: github_document
+vignette: >
+  %\VignetteIndexEntry{The Water Jug Problem}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, echo = FALSE, message = FALSE}
+library(hedgehog)
+set.seed(1014)
+snoc <- function (xs, x) {
+  unlist ( list ( xs, list( x)) , recursive = F )
+}
+```
+
+<img src="hedgehog-logo.png" width="307" align="right"/>
+
+> Hedgehog will eat all your bugs.
+
+Die Hard with a Vengeance is a great film, and has a few great
+brain teasers, including the eponymous water jug problem.
+
+<iframe width="500" height="300" src="https://www.youtube.com/embed/6cAbgAaEOVE?rel=0" frameborder="0" allowfullscreen="">
+</iframe>
+
+
+Using this problem as a demonstration of state machine and property
+based testing is not a new idea, and has previously been implemented
+in [TLA+][tla], [hypothesis][hypothesis], and even [hedgehog][haskell-jugs]
+itself (using the haskell version); even so, it's fun to compare.
+
+The aim is to fill a jug with 4 gallons of water, given only a 3
+gallon jug and 5 gallon jug; neither of which have accurate markings.
+
+Now this particular problem is simple enough that we don't need to
+employ state machine testing (although it would make it more than
+10 times more efficient). Here's how it looks:
+
+First, we set up how out state will change, we're just going to use
+a simple list to hold the state of the two jugs, and a switch will
+choose which action we will run.
+
+```{r}
+empty.jugs <- list(big = 0, small = 0)
+step <- function(jugs, action) {
+  big   <- jugs$big
+  small <- jugs$small
+  switch(action
+  , empty.big    = list(big = 0, small = small)
+  , empty.small  = list(big = big, small = 0)
+  , fill.big     = list(big = 5, small = small)
+  , fill.small   = list(big = big, small = 3)
+  , small.to.big = { big.new <- min(5, big + small)
+                     list(big = big.new, small = small - (big.new - big))}
+  , big.to.small = { small.new <- min(3, big + small)
+                     list(big = big - (small.new - small), small = small.new)}
+  )
+}
+```
+
+We'll need a function which runs over all of the steps we can choose.
+```{r}
+run.steps <- function(steps) {
+  Reduce(step, steps, empty.jugs)
+}
+```
+
+And just an example of these function working
+```{r}
+run.steps(c("fill.small", "small.to.big", "fill.small"))
+```
+
+Ok, now what we want to find is a sequence of events which will leave
+the big jug with 4 gallons. An alternative way to think about this, is we
+can try and show the opposite, that all sequences must not have a result
+of 4 gallons, and if there is, try and find the smallest counterexample
+
+```{r, error=TRUE }
+actions <- c("empty.big", "empty.small", "fill.big", "fill.small", "small.to.big", "big.to.small")
+
+test_that("The big water jug can't have 4 gallons",
+  forall(
+    gen.c(gen.element(actions), from = 5, to = 20)
+  , function(steps) expect_false(4 == run.steps(steps)$big)
+  , tests = 10000
+  )
+)
+```
+
+Awesome, this is indeed the minimal example of how to solve this problem.
+One irksome thing though, is that we had to crank up the number of tests
+quite high, and only saw a result at around 1000 tests. This is completely
+sufficient here, but in a more complex system, it would pay to be more
+efficient.
+
+Although it's overkill for this problem, [state-machine](state-machines.html)
+provides a powerful framework for reducing the number of examples required
+here by more than a factor of 10. The idea is that we can set expectations
+for all state transitions instead of only checking at the end, as well as
+set pre-conditions such that actions with no effect (like emptying an empty
+jug) won't be considered.
+
+State Machine
+-------------
+
+First thing we need to do is convert our step function into a set of commands.
+Hedgehog provides the `command` function for this purpose.
+We'll use a little helper function to do this.
+
+```{r}
+step.command <- function(action) {
+  effectful  <- function(state) !identical(step(state, action), state)
+  command(action
+    , generator = function(state) if (effectful(state)) list() else NULL
+    , require   = effectful
+    , execute   = function(state) NULL
+    , update    = function(state, ...) step(state, action)
+    , ensure    = function(state, ...) { expect_false(4 == state$big )}
+  )
+}
+
+commands <- lapply(actions, step.command)
+```
+
+This function, given one of the character strings we used earlier, will
+create a hedgehog `command` suitable for state machine testing. Usually,
+one uses this functionality for testing an secondary system, which the
+`execute` function interacts with. Here we don't need to do this, so this
+function does nothing. The generator and require are preconditioned on
+the action being effectful, and after every action we will test if the
+jugs are at the level we're looking for.
+
+We can now test that the post-conditions hold (or don't in this case) for
+all sets of actions using the `expect_sequential` expectation.
+
+```{r, error=TRUE }
+test_that("The big water jug can't have 4 gallons",
+  forall(
+    gen.actions(empty.jugs, commands)
+  , function(steps) expect_sequential(empty.jugs, steps)
+  , tests = 1000
+  )
+)
+```
+
+To see how to interact with systems including abstracted or difficult
+to observe state, see the [state-machines](state-machines.html) vignette.
+
+  [tla]: https://github.com/tlaplus/Examples/blob/master/specifications/DieHard/DieHard.tla
+  [hypothesis]: http://hypothesis.works/articles/how-not-to-die-hard-with-hypothesis/
+  [haskell-jugs]: http://clrnd.com.ar/posts/2017-04-21-the-water-jug-problem-in-hedgehog.html

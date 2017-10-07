@@ -22,4 +22,3 @@ a list of actions to run during testing
 \description{
 Generate a list of possible actions.
 }
-

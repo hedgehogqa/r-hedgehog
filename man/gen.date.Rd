@@ -16,7 +16,9 @@ gen.date(from = as.Date("1900-01-01"), to = as.Date("3000-01-01"))
 Shrinks towards the \code{from} value.
 }
 \examples{
-gen.date()
-gen.date( from = as.Date("1939-09-01"), to = as.Date("1945-09-02"))
-}
+g <- gen.date()
+gen.example ( g )
 
+g <- gen.date( from = as.Date("1939-09-01"), to = as.Date("1945-09-02"))
+gen.example ( g )
+}

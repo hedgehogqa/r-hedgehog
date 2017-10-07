@@ -41,29 +41,40 @@
 #'
 #' @examples
 #' # To create a matrix
-#' gen.map( function(x) { matrix(x, ncol=3) }, gen.c.of(6, gen.element(1:30)) )
+#' g <- gen.map( function(x) { matrix(x, ncol=3) }, gen.c.of(6, gen.element(1:30)) )
+#' gen.example(g)
 #'
 #' # To create a generator from a normal R random function
 #' # (this generator does not shrink).
 #' g <- gen.impure ( function(size) sample(1:10) )
-#' gen.example ( g )
+#' gen.example(g)
 #' # [1]  5  6  3  4  8 10  2  7  9  1
 #'
 #' # Generating a vector whose length is defined by a generator
 #' g <- gen.with( gen.element(2:100), function(x) gen.c.of( x, gen.element(1:10)))
-#' gen.example ( g )
+#' gen.example(g)
 #' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
 #'
 #' # Same as above, as @bind@ is @with@ with arguments flipped.
 #' g <- gen.bind( function(x) gen.c.of( x, gen.element(1:10)), gen.element(2:100))
-#' gen.example ( g )
+#' gen.example(g)
 #' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
-#' @name gen-monad
+#' @name generators
 NULL
 
-#' @rdname gen-monad
+#' @rdname generators
 gen <- function(t) {
     structure(list(unGen = t), class = "hedgehog.internal.gen")
+}
+
+#' @export
+print.hedgehog.internal.gen <- function(x, ...) {
+    example <- gen.run(x, 5)
+    cat("Hedgehog generator:\n")
+    cat("Example:\n")
+    print(example$root)
+    cat("Initial shrinks:\n")
+    lapply(example$children(), function(c) print(c$root))
 }
 
 #' Run a generator
@@ -85,7 +96,7 @@ gen.run <- function(generator, size) {
     tree
 }
 
-#' @rdname gen-monad
+#' @rdname generators
 #' @export
 gen.with <- function(g, f) {
     gen(function(size) {
@@ -96,25 +107,25 @@ gen.with <- function(g, f) {
     })
 }
 
-#' @rdname gen-monad
+#' @rdname generators
 #' @export
 gen.bind <- function(f, g) {
     gen.with(g, f)
 }
 
-#' @rdname gen-monad
+#' @rdname generators
 #' @export
 gen.pure <- function(x) {
     gen(function(size) tree(x))
 }
 
-#' @rdname gen-monad
+#' @rdname generators
 #' @export
 gen.impure <- function(fg) {
     gen(function(size) tree(fg(size)))
 }
 
-#' @rdname gen-monad
+#' @rdname generators
 #' @export
 gen.map <- function(m, g) {
     gen(function(size) {
@@ -128,17 +139,7 @@ gen.map <- function(m, g) {
 #' @param g A generator
 #' @param size The sized example to view
 gen.example <- function(g, size = 5) {
-    gen.run(g, size)
-}
-
-#' @export
-print.gen <- function(x, ...) {
-    example <- gen.example(x)
-    cat("Hedgehog generator:\n")
-    cat("Example:\n")
-    print(example$root)
-    cat("Initial shrinks:\n")
-    lapply(example$children(), function(c) print(c$root))
+    gen.run(g, size)$root
 }
 
 #' Generate a structure
@@ -159,17 +160,20 @@ print.gen <- function(x, ...) {
 #'
 #' @examples
 #' # To create a matrix
-#' gen.structure( gen.c.of(6, gen.element(1:30)), dim = 3:2)
+#' g <- gen.structure( gen.c.of(6, gen.element(1:30)), dim = 3:2)
+#' gen.example(g)
 #'
 #' # To create a data frame for testing.
-#' gen.structure (
-#'   list ( gen.c.of(4, gen.element(2:10))
-#'        , gen.c.of(4, gen.element(2:10))
-#'        , c('a', 'b', 'c', 'd')
-#'        )
-#'   , names = c('a','b', 'constant')
-#'   , class = 'data.frame'
-#'   , row.names = c('1', '2', '3', '4' ))
+#' g <- gen.structure (
+#'        list ( gen.c.of(4, gen.element(2:10))
+#'             , gen.c.of(4, gen.element(2:10))
+#'             , c('a', 'b', 'c', 'd')
+#'             )
+#'        , names = c('a','b', 'constant')
+#'        , class = 'data.frame'
+#'        , row.names = c('1', '2', '3', '4' ))
+#'
+#' gen.example(g)
 gen.structure <- function(x, ...) {
     gen.map(function(m) {
         attributes(m) <- list(...)
@@ -188,7 +192,8 @@ gen.structure <- function(x, ...) {
 #'   returning a generator
 #'
 #' @examples
-#' gen.sized ( function(e) gen.element(1:e) )
+#' g <- gen.sized ( function(e) gen.element(1:e) )
+#' gen.example(g)
 gen.sized <- function(f) {
     gen(function(size) {
         tree <- gen.run(f(size), size)
@@ -218,11 +223,17 @@ gen.sized <- function(f) {
 #'   sampled.
 #'
 #' @examples
-#' gen.element(1:10)   # a number
-#' gen.element(c(TRUE,FALSE)) # a boolean
-#' gen.int(10) # a number up to 10
-#' gen.choice(gen.element(1:10), gen.element(letters))
-#' gen.choice(NaN, Inf, gen.unif(-10, 10), prob = c(1,1,10))
+#' g <- gen.element(1:10)   # a number
+#' gen.example(g)
+#'
+#' g <- gen.element(c(TRUE,FALSE)) # a boolean
+#' gen.example(g)
+#'
+#' g <- gen.int(10) # a number up to 10
+#' gen.example(g)
+#'
+#' g <- gen.choice(NaN, Inf, gen.unif(-10, 10), prob = c(1,1,10))
+#' gen.example(g)
 #'
 #' @return \code{gen.element} returns an item from the list
 #'   or vector; \code{gen.int}, an integer up to the value
@@ -237,10 +248,10 @@ gen.sized <- function(f) {
 #'   towards being empty; and \code{gen.sample} will shrink
 #'   towards the original list order.
 #'
-#' @name gen-element
+#' @name generator_sampling
 NULL
 
-#' @rdname gen-element
+#' @rdname generator_sampling
 #' @export
 gen.element <- function(x, prob = NULL) {
     gen.map(function(i) {
@@ -252,7 +263,7 @@ gen.element <- function(x, prob = NULL) {
     }, gen.int(length(x), prob = prob))
 }
 
-#' @rdname gen-element
+#' @rdname generator_sampling
 #' @export
 gen.int <- function(n, prob = NULL) {
     gen.shrink(shrink.towards(1), gen.impure(function(size) {
@@ -260,14 +271,14 @@ gen.int <- function(n, prob = NULL) {
     }))
 }
 
-#' @rdname gen-element
+#' @rdname generator_sampling
 #' @export
 gen.choice <- function(..., prob = NULL) {
     gens <- list(...)
     gen.bind(function(i) gens[[i]], gen.int(length(gens), prob = prob))
 }
 
-#' @rdname gen-element
+#' @rdname generator_sampling
 #' @export
 gen.subsequence <- function(x) {
     gen.with( gen.no.shrink( gen.int( length(x)) ), function(size_) {
@@ -279,7 +290,7 @@ gen.subsequence <- function(x) {
     })
 }
 
-#' @rdname gen-element
+#' @rdname generator_sampling
 #' @export
 gen.sample <- function(x, size, replace = FALSE, prob = NULL) {
     # If size isn't specified, then we'll use the length
@@ -295,7 +306,7 @@ gen.sample <- function(x, size, replace = FALSE, prob = NULL) {
     })
 }
 
-#' @rdname gen-element
+#' @rdname generator_sampling
 #' @export
 #' @importFrom utils combn
 gen.sample.int <- function(n, size, replace = FALSE, prob = NULL) {
@@ -372,7 +383,8 @@ gen.sample.int <- function(n, size, replace = FALSE, prob = NULL) {
 #'   instead of the low end.
 #'
 #' @examples
-#' gen.unif(0, 1) # a float between 0 and 1
+#' g <- gen.unif(0, 1) # a float between 0 and 1
+#' gen.example(g)
 gen.unif <- function(from, to, shrink.median = T) {
     gen.shrink(
         shrink.towards(qunif(ifelse(shrink.median, 0.5, 0), from, to))
@@ -426,8 +438,11 @@ gen.beta <- function(shape1, shape2, ncp = 0) {
 #' @param to a \code{Date} value
 #'
 #' @examples
-#' gen.date()
-#' gen.date( from = as.Date("1939-09-01"), to = as.Date("1945-09-02"))
+#' g <- gen.date()
+#' gen.example ( g )
+#'
+#' g <- gen.date( from = as.Date("1939-09-01"), to = as.Date("1945-09-02"))
+#' gen.example ( g )
 gen.date <- function(from = as.Date("1900-01-01"), to = as.Date("3000-01-01")) {
     gen.element( seq(from, to, by="day") )
 }

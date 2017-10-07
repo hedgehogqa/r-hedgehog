@@ -134,15 +134,13 @@ reify <- function(x, env) {
 # @param counter the output variable this action
 #   can write to.
 #
-# @importFrom purrr partial
-#
 # @return a list, acc is the new state and counter
 #   as well as the action generated.
 gen.action <- function(commands, state, counter) {
   possible <- Filter(function(command) {
     !is.null ( command$gen(state) )
   }, commands)
-  gen.with(gen.element( possible ), function (command) {
+  gen.with(gen.element(possible), function (command) {
     # The (symbolic) input for the command.
     # Essentially this says which values it
     # will read from.
@@ -150,8 +148,7 @@ gen.action <- function(commands, state, counter) {
       # Check the requires condition make sense.
       # These requires functions are needed to
       # ensure we have a good shrink.
-      require_ <- partial(command$require, state = state)
-      if (!do.call(require_, as.list(input)))
+      if (!do.call(command$require, c(list(state = state), as.list(input))))
         stop("Command generation arguments voilate requirements")
 
       # Get a variable name we'll use for the output
@@ -160,8 +157,7 @@ gen.action <- function(commands, state, counter) {
       output   <- symbolic (counter)
 
       # Build a new state which we can work with
-      update_  <- partial(command$update, state = state, output = output)
-      state_   <- do.call(update_ , as.list( input ))
+      state_   <- do.call(command$update, c(list(state = state, output = output), as.list(input)))
 
       # Build the action which can be run.
       action_  <- structure(list(
@@ -183,10 +179,8 @@ gen.action <- function(commands, state, counter) {
 # Returns the actions and it's updates to the state
 # only if they're currently valid.
 check.valid  <- function(ok, state, action) {
-  require_  <- partial(action$require, state = state)
-  if (do.call(require_, as.list(action$input))) {
-    update_ <- partial(action$update, state = state, output = action$output)
-    state_  <- do.call(update_ , as.list(action$input))
+  if (do.call(action$require, c(list(state = state), as.list(action$input)))) {
+    state_  <- do.call(action$update , c(list(state = state, output = action$output), as.list(action$input)))
     list(ok = snoc(ok, action), state = state_)
   } else {
     list(ok = ok, state = state)
@@ -214,17 +208,14 @@ drop.invalid <- function(actions, initial.state) {
 #'   appropriate for the state will actually be
 #'   selected.
 #'
-#' @importFrom purrr partial
-#'
 #' @return a list of actions to run during testing
 gen.actions <- function(initial.state, commands) {
-  run_ <- partial(gen.action, commands = commands)
   gen.map(
     function(actions) drop.invalid(actions, initial.state)
   , { g <-  gen(function(size) {
               tree.bind(function(num) {
                 tree.replicateS(num, function(x) {
-                  run_(x$state, x$counter)$unGen(size)
+                  gen.action(commands, x$state, x$counter)$unGen(size)
                 }, list(state = initial.state, counter = 1))
               }, gen.int(size)$unGen(size) )
             })
@@ -245,17 +236,11 @@ gen.actions <- function(initial.state, commands) {
 #   results from.
 execute <- function(state, env, action) {
   input   <- reify( action$input, env )
-  output  <- do.call( action$execute, as.list(input) )
-  update_ <- partial( action$update, state = state, output = output)
-  state_  <- do.call( update_ , as.list( input ))
+  output  <- do.call( action$execute, as.list(input))
+  state_  <- do.call( action$update, c(list(state = state, output = output), as.list(input )))
   env[[action$output]] <- output
-
-  ensure_ <- partial( action$ensure, state = state_, output = output)
-  do.call( ensure_ , as.list( input ))
-
-  list( state = state_
-      , environment = env
-      )
+  do.call(action$ensure, c(list(state = state_, output = output), as.list( input )))
+  list(state = state_, environment = env)
 }
 
 #' Execute a state machine model

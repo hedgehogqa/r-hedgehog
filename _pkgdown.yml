@@ -1,0 +1,23 @@
+url: "http://hedgehogqa.github.io/r-hedgehog"
+
+template:
+  params:
+    bootswatch: lumen
+
+reference:
+  - title: Running Properties
+    contents:
+    - forall
+    - discard
+  - title: Generators
+    desc:  Generator functions
+    contents:
+    - starts_with("gen.")
+  - title: Shrinking
+    contents:
+    - starts_with("shrink.")
+  - title: State Machine Testing
+    contents:
+    - command
+    - gen.actions
+    - expect_sequential

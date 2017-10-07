@@ -14,4 +14,3 @@ gen.list.of(number, generator)
 \description{
 Generate a list of values with fixed length
 }
-

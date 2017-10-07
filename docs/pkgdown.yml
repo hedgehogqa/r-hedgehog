@@ -1,0 +1,8 @@
+urls:
+  reference: http://hedgehogqa.github.io/r-hedgehog/reference
+  article: http://hedgehogqa.github.io/r-hedgehog/articles
+articles:
+  die-hard: die-hard.html
+  hedgehog: hedgehog.html
+  state-machines: state-machines.html
+

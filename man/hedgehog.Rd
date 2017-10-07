@@ -25,19 +25,19 @@ behaviour occurs.
 }
 \section{Options}{
 
-- `hedgehog.tests`: Number of tests to run in each property
-    (Default: `100`).
-
-- `hedgehog.size`: Maximum size parameter to pass to generators
-    (Default: `50`).
-
-- `hedgehog.shrinks`: Maximum number of shrinks to search for
-    (Default: `100`).
-
-- `hedgehog.discards`: Maximum number of discards permitted
-    within a property test before failure
-    (Default: `100`).
+\itemize{
+\item \code{hedgehog.tests}: Number of tests to run in each property
+(Default: \code{100}).
+\item \code{hedgehog.size}: Maximum size parameter to pass to generators
+(Default: \code{50}).
+\item \code{hedgehog.shrinks}: Maximum number of shrinks to search for
+(Default: \code{100}).
+\item \code{hedgehog.discards}: Maximum number of discards permitted
+within a property test before failure
+(Default: \code{100}).
 }
+}
+
 \examples{
 library(hedgehog)
 test_that( "Reverse and concatenate symmetry",
@@ -54,4 +54,3 @@ Campbell, H (2017). hedgehog: Property based testing in R
 
 \url{https://github.com/hedgehogqa/r-hedgehog}
 }
-

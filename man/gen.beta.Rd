@@ -16,4 +16,3 @@ gen.beta(shape1, shape2, ncp = 0)
 \description{
 Shrinks towards the median value.
 }
-

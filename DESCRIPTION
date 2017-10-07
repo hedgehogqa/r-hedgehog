@@ -12,4 +12,7 @@ Imports: purrr
 Depends: testthat
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+URL: https://hedgehogqa.github.io/r-hedgehog/, https://hedgehog.qa/r-hedgehog/
+BugReports: https://github.com/hedgehogqa/r-hedgehog/issues
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.0.1

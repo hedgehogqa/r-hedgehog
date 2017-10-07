@@ -16,4 +16,3 @@ gen.c.of(number, generator)
 Generate a vector of primitive values
 from a generator.
 }
-
