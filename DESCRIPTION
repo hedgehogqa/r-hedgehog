@@ -1,0 +1,15 @@
+Package: hedgehog
+Type: Package
+Title: Property Testing for R
+Version: 0.1
+Date: 2017-08-14
+Authors@R: person("Huw", "Campbell", email = "huw.campbell@gmail.com",
+                  role = c("aut", "cre"))
+Description: Provides a modern property-based
+  testing system for R, in the spirit of QuickCheck.
+License: MIT + file LICENSE
+Imports: purrr
+Depends: testthat
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 5.0.1
