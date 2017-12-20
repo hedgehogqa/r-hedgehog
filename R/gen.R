@@ -41,7 +41,9 @@
 #'
 #' @examples
 #' # To create a matrix
-#' gen.map( function(x) { matrix(x, ncol=3) }, gen.c.of(6, gen.element(1:30)) )
+#' gen.apply(gen.c.of(6, gen.element(1:30)), function(x) { matrix(x, ncol=3) } )
+#'
+#' # Same as above, as @gen.map@ is @gen.apply@ with arguments flipped.
 #'
 #' # To create a generator from a normal R random function
 #' # (this generator does not shrink).
@@ -54,7 +56,7 @@
 #' gen.example ( g )
 #' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
 #'
-#' # Same as above, as @bind@ is @with@ with arguments flipped.
+#' # Same as above, as @gen.bind@ is @gen.with@ with arguments flipped.
 #' g <- gen.bind( function(x) gen.c.of( x, gen.element(1:10)), gen.element(2:100))
 #' gen.example ( g )
 #' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
@@ -63,7 +65,8 @@ NULL
 
 #' @rdname gen-monad
 gen <- function(t) {
-    structure(list(unGen = t), class = "hedgehog.internal.gen")
+    class(t) <- "hedgehog.internal.gen"
+    t
 }
 
 #' Run a generator
@@ -71,7 +74,7 @@ gen <- function(t) {
 #' Samples from a generator or list of generators
 #' producing a (single) lazy rose tree.
 #'
-#' This is different to calling generarator$unGen(size)
+#' This is different to calling generarator(size)
 #' in that it also works on (nested) lists of generators
 #' and pure values.
 #'
@@ -116,11 +119,17 @@ gen.impure <- function(fg) {
 
 #' @rdname gen-monad
 #' @export
-gen.map <- function(m, g) {
+gen.apply <- function(g, m) {
     gen(function(size) {
         tree <- gen.run(g, size)
         tree.map(m, tree)
     })
+}
+
+#' @rdname gen-monad
+#' @export
+gen.map <- function(m, g) {
+    gen.apply(g, m)
 }
 
 #' Sample from a generator.
@@ -132,7 +141,7 @@ gen.example <- function(g, size = 5) {
 }
 
 #' @export
-print.gen <- function(x, ...) {
+print.hedgehog.internal.gen <- function(x, ...) {
     example <- gen.example(x)
     cat("Hedgehog generator:\n")
     cat("Example:\n")
@@ -532,7 +541,7 @@ gen.list <- function(generator, from = 1, to = NULL) {
 unfoldgenerator <- function(generator, size) {
     if (inherits(generator, "hedgehog.internal.gen")) {
         # A generator can be run and turned into a tree
-        generator$unGen(size)
+        generator(size)
     } else if (is.list(generator)) {
         # Lists can contain a generator.
         lapply(generator, function(g) unfoldgenerator(g, size))

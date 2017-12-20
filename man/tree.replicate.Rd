@@ -2,6 +2,7 @@
 % Please edit documentation in R/tree.R
 \name{tree.replicate}
 \alias{tree.replicate}
+\alias{tree.replicate}
 \alias{tree.replicateS}
 \title{Creating trees of lists}
 \usage{
@@ -25,4 +26,3 @@ keep track of.}
 Build a tree of a list, potentially
 keeping hold of an internal state.
 }
-

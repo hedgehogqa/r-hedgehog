@@ -17,4 +17,3 @@ to}
 \description{
 shrinker takes an 'a and returns a vector of 'a.
 }
-

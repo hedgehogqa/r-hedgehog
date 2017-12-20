@@ -14,4 +14,3 @@ shrink.removes(num, xs)
 \description{
 Produce permutations of removing num elements from a list.
 }
-

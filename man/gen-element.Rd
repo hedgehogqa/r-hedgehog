@@ -2,12 +2,12 @@
 % Please edit documentation in R/gen.R
 \name{gen-element}
 \alias{gen-element}
-\alias{gen.choice}
 \alias{gen.element}
 \alias{gen.int}
+\alias{gen.choice}
+\alias{gen.subsequence}
 \alias{gen.sample}
 \alias{gen.sample.int}
-\alias{gen.subsequence}
 \title{Random Sample Generation}
 \usage{
 gen.element(x, prob = NULL)
@@ -71,4 +71,3 @@ gen.choice(gen.element(1:10), gen.element(letters))
 gen.choice(NaN, Inf, gen.unif(-10, 10), prob = c(1,1,10))
 
 }
-

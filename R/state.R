@@ -224,9 +224,9 @@ gen.actions <- function(initial.state, commands) {
   , { g <-  gen(function(size) {
               tree.bind(function(num) {
                 tree.replicateS(num, function(x) {
-                  run_(x$state, x$counter)$unGen(size)
+                  run_(x$state, x$counter)(size)
                 }, list(state = initial.state, counter = 1))
-              }, gen.int(size)$unGen(size) )
+              }, gen.int(size)(size) )
             })
       gen.shrink(shrink.list, g)
     }

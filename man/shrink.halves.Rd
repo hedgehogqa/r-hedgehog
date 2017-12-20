@@ -16,4 +16,3 @@ Shrink a number by dividing it into halves.
 shrink.towards(45)
 # 22 11  5  2  1
 }
-
