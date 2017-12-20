@@ -21,4 +21,3 @@ an expectation.
 Executes the list of commands sequentially,
 ensuring that all postconditions hold.
 }
-

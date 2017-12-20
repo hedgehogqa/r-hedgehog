@@ -18,4 +18,3 @@ elements ( defaults to size if NULL )}
 \description{
 Generate a vector of values from a generator
 }
-

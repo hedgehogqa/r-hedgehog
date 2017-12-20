@@ -19,4 +19,3 @@ Shrinks towards the \code{from} value.
 gen.date()
 gen.date( from = as.Date("1939-09-01"), to = as.Date("1945-09-02"))
 }
-

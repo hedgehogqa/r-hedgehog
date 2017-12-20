@@ -2,13 +2,14 @@
 % Please edit documentation in R/tree.R
 \name{tree}
 \alias{tree}
-\alias{tree.bind}
-\alias{tree.expand}
-\alias{tree.liftA2}
+\alias{tree}
 \alias{tree.map}
-\alias{tree.sequence}
+\alias{tree.bind}
+\alias{tree.liftA2}
+\alias{tree.expand}
 \alias{tree.unfold}
 \alias{tree.unfoldForest}
+\alias{tree.sequence}
 \title{Lazy rose trees}
 \usage{
 tree(root, children_ = list())
@@ -58,4 +59,3 @@ as the combinators in the gen module
 should be expressive enough (if they're
 not raise an issue).
 }
-

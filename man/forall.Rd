@@ -68,4 +68,3 @@ test_that( "Reverse is identity",
 # [1] 1 2
 
 }
-
