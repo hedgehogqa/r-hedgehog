@@ -18,4 +18,3 @@ a gen.
 \examples{
 gen.sized ( function(e) gen.element(1:e) )
 }
-

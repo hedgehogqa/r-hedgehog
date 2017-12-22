@@ -16,4 +16,3 @@ gen.gamma(shape, rate = 1, scale = 1/rate)
 \description{
 Shrinks towards the median value.
 }
-

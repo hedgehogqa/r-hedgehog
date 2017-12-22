@@ -53,4 +53,3 @@ a command structure.
 This helper function assists one in creating commands
 for state machine testing in hedgehog.
 }
-

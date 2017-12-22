@@ -38,6 +38,7 @@ behaviour occurs.
     within a property test before failure
     (Default: `100`).
 }
+
 \examples{
 library(hedgehog)
 test_that( "Reverse and concatenate symmetry",
@@ -54,4 +55,3 @@ Campbell, H (2017). hedgehog: Property based testing in R
 
 \url{https://github.com/hedgehogqa/r-hedgehog}
 }
-

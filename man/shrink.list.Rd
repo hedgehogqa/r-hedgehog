@@ -12,4 +12,3 @@ shrink.list(xs)
 \description{
 Shrink a list by edging towards the empty list.
 }
-

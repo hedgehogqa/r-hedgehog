@@ -23,4 +23,3 @@ if \code{shrink.median} is on, the middle.
 \examples{
 gen.unif(0, 1) # a float between 0 and 1
 }
-

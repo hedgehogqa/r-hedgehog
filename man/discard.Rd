@@ -9,4 +9,3 @@ discard()
 \description{
 Discard a test case
 }
-

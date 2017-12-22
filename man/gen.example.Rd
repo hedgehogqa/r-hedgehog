@@ -14,4 +14,3 @@ gen.example(g, size = 5)
 \description{
 Sample from a generator.
 }
-

@@ -13,4 +13,3 @@ from}
 \description{
 Stop a generator from shrinking
 }
-
