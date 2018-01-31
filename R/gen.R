@@ -132,7 +132,7 @@ gen.example <- function(g, size = 5) {
 }
 
 #' @export
-print.gen <- function(x, ...) {
+print.hedgehog.internal.gen <- function(x, ...) {
     example <- gen.example(x)
     cat("Hedgehog generator:\n")
     cat("Example:\n")
