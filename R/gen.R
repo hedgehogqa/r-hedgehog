@@ -41,7 +41,10 @@
 #'
 #' @examples
 #' # To create a matrix
-#' gen.map( function(x) { matrix(x, ncol=3) }, gen.c.of(6, gen.element(1:30)) )
+#' gen.with( gen.c.of(6, gen.element(1:30)), function(x) { matrix(x, ncol=3) })
+#'
+#' # or equivalently
+#' gen.map( function(x) { matrix(x, ncol=3)}, gen.c.of(6, gen.element(1:30)) )
 #'
 #' # To create a generator from a normal R random function
 #' # (this generator does not shrink).
@@ -50,11 +53,11 @@
 #' # [1]  5  6  3  4  8 10  2  7  9  1
 #'
 #' # Generating a vector whose length is defined by a generator
-#' g <- gen.with( gen.element(2:100), function(x) gen.c.of( x, gen.element(1:10)))
+#' g <- gen.and_then( gen.element(2:100), function(x) gen.c.of( x, gen.element(1:10)))
 #' gen.example ( g )
 #' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
 #'
-#' # Same as above, as @bind@ is @with@ with arguments flipped.
+#' # Same as above, as @bind@ is @and_then@ with arguments flipped.
 #' g <- gen.bind( function(x) gen.c.of( x, gen.element(1:10)), gen.element(2:100))
 #' gen.example ( g )
 #' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
@@ -87,7 +90,7 @@ gen.run <- function(generator, size) {
 
 #' @rdname gen-monad
 #' @export
-gen.with <- function(g, f) {
+gen.and_then <- function(g, f) {
     gen(function(size) {
         tree <- gen.run(g, size)
         tree.bind(function(x) {
@@ -99,7 +102,7 @@ gen.with <- function(g, f) {
 #' @rdname gen-monad
 #' @export
 gen.bind <- function(f, g) {
-    gen.with(g, f)
+    gen.and_then(g, f)
 }
 
 #' @rdname gen-monad
@@ -116,11 +119,17 @@ gen.impure <- function(fg) {
 
 #' @rdname gen-monad
 #' @export
-gen.map <- function(m, g) {
+gen.with <- function(g, m) {
     gen(function(size) {
         tree <- gen.run(g, size)
         tree.map(m, tree)
     })
+}
+
+#' @rdname gen-monad
+#' @export
+gen.map <- function(m, g) {
+    gen.with(g, m)
 }
 
 #' Sample from a generator.
@@ -270,7 +279,7 @@ gen.choice <- function(..., prob = NULL) {
 #' @rdname gen-element
 #' @export
 gen.subsequence <- function(x) {
-    gen.with( gen.no.shrink( gen.int( length(x)) ), function(size_) {
+    gen.and_then( gen.no.shrink( gen.int( length(x)) ), function(size_) {
       gen.shrink(shrink.list,
         gen.impure( function(g_size) {
           x[sort(sample.int(length(x), size_))]
@@ -288,7 +297,7 @@ gen.sample <- function(x, size, replace = FALSE, prob = NULL) {
 
     # Monadic generator here so we can permit the size
     # argument to be a generator.
-    gen.with(arg.size, function(size_) {
+    gen.and_then(arg.size, function(size_) {
       gen.map(function(inds) x[inds],
         gen.sample.int(length(x), size_, replace = replace, prob = prob )
       )
@@ -348,7 +357,7 @@ gen.sample.int <- function(n, size, replace = FALSE, prob = NULL) {
 
     # Monadic generator here so we can permit the size
     # argument to be a generator.
-    gen.with(arg.size, function(size_) {
+    gen.and_then(arg.size, function(size_) {
       gen.shrink(reorder,
         gen.impure(function(g_size) {
           sample.int(n, size_, replace = replace, prob = prob)
@@ -511,7 +520,7 @@ gen.list <- function(generator, from = 1, to = NULL) {
         if (is.null(to)) {
             to <- size
         }
-        gen.with(gen.element(from:to), function(num) {
+        gen.and_then(gen.element(from:to), function(num) {
             shrinker <- function(as) {
                 Filter(function(ls) length(ls) >= from, shrink.list(as))
             }

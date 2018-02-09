@@ -142,7 +142,7 @@ gen.action <- function(commands, state, counter) {
   possible <- Filter(function(command) {
     !is.null ( command$gen(state) )
   }, commands)
-  gen.with(gen.element( possible ), function (command) {
+  gen.and_then(gen.element( possible ), function (command) {
     # The (symbolic) input for the command.
     # Essentially this says which values it
     # will read from.
