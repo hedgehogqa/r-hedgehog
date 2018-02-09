@@ -168,7 +168,7 @@ which first randomly chooses a length, then generates a list of said
 length.
 
 The `gen.map` function can be used to apply an arbitrary function to
-the output of a generator, while `gen.with` is useful in chaining the
+the output of a generator, while `gen.and_then` is useful in chaining the
 results of a generator.
 
 In the following example, we'll create a generator which builds two
@@ -177,12 +177,12 @@ lists of length `n`, then turn them into a `data.frame` with `gen.map`.
 
 ```r
 gen.df.of <- function ( n )
-  gen.map (
-    as.data.frame,
+  gen.with (
     list( as = gen.c.of(n, gen.element(1:10) )
         , bs = gen.c.of(n, gen.element(10:20) )
         )
-    )
+  , as.data.frame
+  )
 
 test_that( "Number of rows is 5",
   forall( gen.df.of(5), function(df) expect_equal(nrow(df), 5))
@@ -198,9 +198,9 @@ will find the minimum shrink.
 
 ```r
 gen.df <-
-  gen.with (
+  gen.and_then (
     gen.element (1:100)
-    , gen.df.of
+  , gen.df.of
   )
 
 test_that( "All data frames are of length 1",

@@ -167,7 +167,7 @@ read <- command ( "Read",
       if ( length(state) == 0 )
         return(NULL)
       list(
-        key = gen.map(function(i) i$key, gen.element( state ))
+        key = gen.with(gen.element( state ), function(i) i$key )
       )}
   , require = function( state, key )
       !is.null ( Find( function( proc ) { proc$key == key } , state ) )
@@ -239,7 +239,7 @@ writeIncorrect <- command ( "Write (Broken)",
       if ( length(state) == 0 )
         return(NULL)
       list (
-        key = gen.map( function(i) i$key, gen.element( state ))
+        key = gen.with( gen.element( state ), function(i) i$key)
       , val = gen.int(10)
       )}
   , require = function( state, key, val )
