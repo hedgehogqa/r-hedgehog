@@ -149,8 +149,8 @@ lists of length `n`, then turn them into a `data.frame` with `gen.with`.
 ```{r echo = T, message = F}
 gen.df.of <- function ( n )
   gen.with (
-    list( as = gen.c.of(n, gen.element(1:10) )
-        , bs = gen.c.of(n, gen.element(10:20) )
+    list( as = gen.c(of = n, gen.element(1:10) )
+        , bs = gen.c(of = n, gen.element(10:20) )
         )
   , as.data.frame
   )

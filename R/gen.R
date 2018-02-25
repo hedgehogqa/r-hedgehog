@@ -39,26 +39,22 @@
 #' @param fg
 #'   a function producing a single value from a size parameter
 #'
+#' @seealso [generate()] for a more R idiomatic way of sequencing
+#'   together generators.
+#'
 #' @examples
-#' # To create a matrix
-#' gen.with( gen.c.of(6, gen.element(1:30)), function(x) { matrix(x, ncol=3) })
 #'
 #' # or equivalently
-#' gen.map( function(x) { matrix(x, ncol=3)}, gen.c.of(6, gen.element(1:30)) )
+#' gen.map( function(x) { matrix(x, ncol=3)}, gen.c(of = 6, gen.element(1:30)) )
 #'
 #' # To create a generator from a normal R random function
 #' # (this generator does not shrink).
 #' g <- gen.impure ( function(size) sample(1:10) )
-#' gen.example ( g )
+#' gen.example(g)
 #' # [1]  5  6  3  4  8 10  2  7  9  1
 #'
-#' # Generating a vector whose length is defined by a generator
-#' g <- gen.and_then( gen.element(2:100), function(x) gen.c.of( x, gen.element(1:10)))
-#' gen.example ( g )
-#' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
-#'
 #' # Same as above, as @bind@ is @and_then@ with arguments flipped.
-#' g <- gen.bind( function(x) gen.c.of( x, gen.element(1:10)), gen.element(2:100))
+#' g <- gen.bind( function(x) gen.c(of = x, gen.element(1:10)), gen.element(2:100))
 #' gen.example ( g )
 #' # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
 #' @name gen-monad
@@ -67,6 +63,49 @@ NULL
 #' @rdname gen-monad
 gen <- function(t) {
     structure(list(unGen = t), class = "hedgehog.internal.gen")
+}
+
+#' Compose generators
+#'
+#' `generator` uses `for` loops to support creating generators
+#' from the result of another generator.
+#'
+#' @param loop A `for` loop expression, where the value iterated
+#'   over is another Hedgehog generator.
+#'
+#' @seealso `gen-monad` for FP style ways of sequencing
+#'   generators. This function is syntactic sugar over
+#'   `gen.and_then` to make it palatable for R users.
+#'
+#' @importFrom rlang is_call
+#' @importFrom rlang caller_env
+#' @importFrom rlang node_cdr
+#' @importFrom rlang node_car
+#' @importFrom rlang node_cadr
+#' @export
+#'
+#' @examples
+#' gen_squares   <- generate(for (i in gen.int(10)) i^2)
+#' gen_sq_digits <- generate(for (i in gen_squares) {
+#'   gen.c(of = i, gen.element(1:9))
+#' })
+generate <- function(loop) {
+  loop <- substitute(loop)
+  if (!is_call(loop, quote(`for`))) {
+    stop("`loop` must be a `for` loop")
+  }
+
+  env  <- caller_env()
+  args <- node_cdr(loop)
+  elt  <- node_car(args)
+  coll <- node_cadr(args)
+  expr <- node_cadr(node_cdr(args))
+  g    <- eval(coll, envir = env)
+
+  gen.and_then(g, function(i) {
+    assign(as.character(elt), i, envir = env)
+    eval(expr, envir = env)
+  })
 }
 
 #' Run a generator
@@ -168,12 +207,12 @@ print.hedgehog.internal.gen <- function(x, ...) {
 #'
 #' @examples
 #' # To create a matrix
-#' gen.structure( gen.c.of(6, gen.element(1:30)), dim = 3:2)
+#' gen.structure( gen.c(of = 6, gen.element(1:30)), dim = 3:2)
 #'
 #' # To create a data frame for testing.
 #' gen.structure (
-#'   list ( gen.c.of(4, gen.element(2:10))
-#'        , gen.c.of(4, gen.element(2:10))
+#'   list ( gen.c(of = 4, gen.element(2:10))
+#'        , gen.c(of = 4, gen.element(2:10))
 #'        , c('a', 'b', 'c', 'd')
 #'        )
 #'   , names = c('a','b', 'constant')
@@ -477,32 +516,18 @@ gen.no.shrink <- function(g) {
 #' @param from minimum length of the list of
 #'   elements
 #' @param to maximum length of the list of
-#'   elements ( defaults to size if NULL )
-gen.c <- function(generator, from = 1, to = NULL) {
-    gen.map(function(xs) do.call(c,xs), gen.list(generator, from, to))
-}
+#'   elements (defaults to size if NULL)
+#' @param of the exact length of the list of
+#'   elements (exclusive to `from` and `to`).
+gen.c <- function(generator, from = 1, to = NULL, of = NULL) {
+  if ((!missing(from) || !missing(to)) && !missing(of))
+    stop("Specify `to` and `from`, or `of`")
 
-#' Generate a vector of primitive values
-#' from a generator.
-#'
-#' @export
-#'
-#' @param number length of vector to generate
-#' @param generator a generator used for vector elements
-gen.c.of <- function(number, generator) {
-    gen.map(function(xs) do.call(c,xs), gen.list.of(number, generator))
-}
-
-#' Generate a list of values with fixed length
-#'
-#' @export
-#'
-#' @param number length of list to generate
-#' @param generator a generator used for list elements
-gen.list.of <- function(number, generator) {
-    gen(function(size) tree.replicate(number, function() {
-        gen.run(generator, size)
-    }))
+  if (!missing(of)) {
+    gen.map(function(xs) do.call(c,xs), gen.list(generator, of = of))
+  } else {
+    gen.map(function(xs) do.call(c,xs), gen.list(generator, from = from, to = to))
+  }
 }
 
 #' Generate a list of values, with
@@ -515,7 +540,17 @@ gen.list.of <- function(number, generator) {
 #'   elements
 #' @param to maximum length of the list of
 #'   elements ( defaults to size if NULL )
-gen.list <- function(generator, from = 1, to = NULL) {
+#' @param of the exact length of the list of
+#'   elements (exclusive to `from` and `to`).
+gen.list <- function(generator, from = 1, to = NULL, of = NULL) {
+  if ((!missing(from) || !missing(to)) && !missing(of))
+    stop("Specify `to` and `from`, or `of`")
+
+  if (!missing(of)) {
+    gen(function(size) tree.replicate(of, function() {
+        gen.run(generator, size)
+    }))
+  } else {
     gen.sized(function(size) {
         if (is.null(to)) {
             to <- size
@@ -524,9 +559,10 @@ gen.list <- function(generator, from = 1, to = NULL) {
             shrinker <- function(as) {
                 Filter(function(ls) length(ls) >= from, shrink.list(as))
             }
-            gen.shrink(shrinker, gen.list.of(num, generator))
+        gen.shrink(shrinker, gen.list(generator, of = num))
         })
     })
+  }
 }
 
 # Turn a generator into a tree and a list of generators

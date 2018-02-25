@@ -9,7 +9,7 @@ Description: Provides a modern property-based
   testing system for R, in the spirit of QuickCheck.
 License: MIT + file LICENSE
 Imports: purrr
-Depends: testthat
+Depends: testthat, rlang (>= 0.1.6.9003)
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1

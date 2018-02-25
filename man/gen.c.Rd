@@ -4,7 +4,7 @@
 \alias{gen.c}
 \title{Generate a vector of values from a generator}
 \usage{
-gen.c(generator, from = 1, to = NULL)
+gen.c(generator, from = 1, to = NULL, of = NULL)
 }
 \arguments{
 \item{generator}{a generator used for vector elements}
@@ -13,7 +13,10 @@ gen.c(generator, from = 1, to = NULL)
 elements}
 
 \item{to}{maximum length of the list of
-elements ( defaults to size if NULL )}
+elements (defaults to size if NULL)}
+
+\item{of}{the exact length of the list of
+elements (exclusive to `from` and `to`).}
 }
 \description{
 Generate a vector of values from a generator

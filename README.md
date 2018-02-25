@@ -162,22 +162,38 @@ from a list or vector; and `runif`, to sample from a uniform
 distribution. We try to maintain a relationship to R's well known
 functions inside Hedgehog.
 
-Generators are also monads, meaning that one can use the result of a
-generator to build a generator. An example of this is a list generator,
-which first randomly chooses a length, then generates a list of said
-length.
+Generators can also be sequenced together, using the output of one
+generator to create a new, more complex one. An example of this is a
+list generator, which first randomly chooses a length, then generates
+a list of said length.
 
-The `gen.map` function can be used to apply an arbitrary function to
+One way to create larger generators in the `generate` function, which
+acts upon an idiomatic `for` loop. For example, one can create a
+generator of squares up to 100; and a generator of vectors with lengths
+of squares with
+
+```r
+gen_squares   <- generate(for (i in gen.int(10)) i^2)
+gen_sq_digits <- generate(for (i in gen_squares) {
+  gen.c(of = i, gen.element(1:9))
+})
+```
+
+Technically, that we can sequence generators is this way implies they
+are monads, and we provide a number combinators for manipulating them
+in this manner.
+
+The `gen.with` function can be used to apply an arbitrary function to
 the output of a generator, while `gen.and_then` is useful in chaining the
 results of a generator.
 
 In the following example, we'll create a generator which builds two
-lists of length `n`, then turn them into a `data.frame` with `gen.map`.
+lists of length `n`, then turn them into a `data.frame` with `gen.with`.
 
 
 ```r
-gen.df.of <- function ( n )
-  gen.with (
+gen.df.of <- function(n)
+  gen.with(
     list( as = gen.c.of(n, gen.element(1:10) )
         , bs = gen.c.of(n, gen.element(10:20) )
         )
@@ -198,8 +214,8 @@ will find the minimum shrink.
 
 ```r
 gen.df <-
-  gen.and_then (
-    gen.element (1:100)
+  gen.and_then(
+    gen.element(1:100)
   , gen.df.of
   )
 

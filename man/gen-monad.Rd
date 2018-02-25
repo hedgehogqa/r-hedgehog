@@ -67,25 +67,22 @@ using this the function will not shrink, so it is best
 composed with \code{\link{gen.shrink}}.
 }
 \examples{
-# To create a matrix
-gen.with( gen.c.of(6, gen.element(1:30)), function(x) { matrix(x, ncol=3) })
 
 # or equivalently
-gen.map( function(x) { matrix(x, ncol=3)}, gen.c.of(6, gen.element(1:30)) )
+gen.map( function(x) { matrix(x, ncol=3)}, gen.c(of = 6, gen.element(1:30)) )
 
 # To create a generator from a normal R random function
 # (this generator does not shrink).
 g <- gen.impure ( function(size) sample(1:10) )
-gen.example ( g )
+gen.example(g)
 # [1]  5  6  3  4  8 10  2  7  9  1
 
-# Generating a vector whose length is defined by a generator
-g <- gen.and_then( gen.element(2:100), function(x) gen.c.of( x, gen.element(1:10)))
-gen.example ( g )
-# [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
-
 # Same as above, as @bind@ is @and_then@ with arguments flipped.
-g <- gen.bind( function(x) gen.c.of( x, gen.element(1:10)), gen.element(2:100))
+g <- gen.bind( function(x) gen.c(of = x, gen.element(1:10)), gen.element(2:100))
 gen.example ( g )
 # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
+}
+\seealso{
+[generate()] for a more R idiomatic way of sequencing
+  together generators.
 }
