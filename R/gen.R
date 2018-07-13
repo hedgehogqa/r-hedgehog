@@ -564,6 +564,43 @@ gen.list <- function(generator, from = 1, to = NULL, of = NULL) {
   }
 }
 
+#' Build recursive structures in a way that guarantees termination.
+#'
+#' This will choose between the recursive and non-recursive terms,
+#' while shrinking the size of the recursive calls.
+#'
+#' @export
+#'
+#' @param tails a list of generators which should not contain
+#    recursive terms.
+#' @param heads a list of generator which can contain recursive
+#'   terms.
+#'
+#' @examples
+#' # Generating a tree with integer leaves
+#' treeGen <-
+#'   gen.recursive(
+#'     # The non-recursive cases
+#'     list(
+#'       gen.int(100)
+#'     )
+#'   , # The recursive cases
+#'     list(
+#'       gen.list( treeGen )
+#'     )
+#'   )
+gen.recursive <- function(tails, heads) {
+  gen.sized(function(size) {
+    if (size <= 1) {
+      do.call(gen.choice, tails)
+    } else {
+      gen(function(size) {
+        gen.run( do.call(gen.choice, c(heads, tails)), size / 3 )
+      })
+    }
+  })
+}
+
 # Turn a generator into a tree and a list of generators
 # into a list of trees.
 #
