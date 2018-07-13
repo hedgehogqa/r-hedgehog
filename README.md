@@ -179,25 +179,17 @@ gen_sq_digits <- generate(for (i in gen_squares) {
 })
 ```
 
-Technically, that we can sequence generators is this way implies they
-are monads, and we provide a number combinators for manipulating them
-in this manner.
-
-The `gen.with` function can be used to apply an arbitrary function to
-the output of a generator, while `gen.and_then` is useful in chaining the
-results of a generator.
-
 In the following example, we'll create a generator which builds two
 lists of length `n`, then turn them into a `data.frame` with `gen.with`.
 
 
 ```r
 gen.df.of <- function(n)
-  gen.with(
-    list( as = gen.c.of(n, gen.element(1:10) )
-        , bs = gen.c.of(n, gen.element(10:20) )
+  generate(for (x in
+    list( as = gen.c(of = n, gen.element(1:10) )
+        , bs = gen.c(of = n, gen.element(10:20) )
         )
-  , as.data.frame
+    ) as.data.frame(x)
   )
 
 test_that( "Number of rows is 5",
@@ -214,10 +206,9 @@ will find the minimum shrink.
 
 ```r
 gen.df <-
-  gen.and_then(
-    gen.element(1:100)
-  , gen.df.of
-  )
+  generate(for (e in gen.element(1:100)) {
+    gen.df.of(e)
+  })
 
 test_that( "All data frames are of length 1",
   forall( gen.df, function(x) expect_equal(nrow(x), 1))
@@ -236,5 +227,13 @@ test_that( "All data frames are of length 1",
 ## 1  1 10
 ## 2  1 10
 ```
+
+Technically, that we can sequence generators is this way implies they
+are monads, and we provide a number combinators for manipulating them
+in this manner.
+
+The `gen.with` function can be used to apply an arbitrary function to
+the output of a generator, while `gen.and_then` is useful in chaining the
+results of a generator.
 
   [testthat]: https://github.com/hadley/testthat

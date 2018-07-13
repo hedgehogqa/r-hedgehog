@@ -62,18 +62,18 @@ NULL
 
 #' @rdname gen-monad
 gen <- function(t) {
-    structure(list(unGen = t), class = "hedgehog.internal.gen")
+  structure(list(unGen = t), class = "hedgehog.internal.gen")
 }
 
 #' Compose generators
 #'
-#' `generator` uses `for` loops to support creating generators
-#' from the result of another generator.
+#' Use `generator` with a for loop over the output of another
+#' generator to create a new, more interesting generator.
 #'
-#' @param loop A `for` loop expression, where the value iterated
-#'   over is another Hedgehog generator.
+#' @param loop A `for` loop expression, where the value
+#'   iterated over is another Hedgehog generator.
 #'
-#' @seealso `gen-monad` for FP style ways of sequencing
+#' @seealso [gen-monad()] for FP style ways of sequencing
 #'   generators. This function is syntactic sugar over
 #'   `gen.and_then` to make it palatable for R users.
 #'
@@ -100,9 +100,8 @@ generate <- function(loop) {
   elt  <- node_car(args)
   coll <- node_cadr(args)
   expr <- node_cadr(node_cdr(args))
-  g    <- eval(coll, envir = env)
 
-  gen.and_then(g, function(i) {
+  gen.and_then(eval(coll, envir = env), function(i) {
     assign(as.character(elt), i, envir = env)
     eval(expr, envir = env)
   })
@@ -580,7 +579,13 @@ unfoldgenerator <- function(generator, size) {
         generator$unGen(size)
     } else if (is.list(generator)) {
         # Lists can contain a generator.
-        lapply(generator, function(g) unfoldgenerator(g, size))
+        # We want to preserve the attributes
+        # here as well. Bugs manifest with
+        # `generate`.
+        info             <- attributes(generator)
+        genx             <- lapply(generator, function(g) unfoldgenerator(g, size))
+        attributes(genx) <- info
+        genx
     } else {
         # Static values are passed through as is
         generator
