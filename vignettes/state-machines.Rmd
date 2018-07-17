@@ -131,7 +131,7 @@ map entry with value `0` to the model.
 
 We can now test this functionality with an initial state.
 
-````{r echo = T, message = F}
+```{r echo = T, message = F}
 initialmodel <- list()
 ```
 

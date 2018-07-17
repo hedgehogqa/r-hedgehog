@@ -203,7 +203,6 @@ test a property which is false in order to show how hedgehog
 will find the minimum shrink.
 
 
-
 ```r
 gen.df <-
   generate(for (e in gen.element(1:100)) {
@@ -230,7 +229,8 @@ test_that( "All data frames are of length 1",
 
 Technically, that we can sequence generators is this way implies they
 are monads, and we provide a number combinators for manipulating them
-in this manner.
+in this manner. Indeed, `generate` is simply syntactic sugar for monadic
+bind, sometimes referred to as "and then".
 
 The `gen.with` function can be used to apply an arbitrary function to
 the output of a generator, while `gen.and_then` is useful in chaining the
