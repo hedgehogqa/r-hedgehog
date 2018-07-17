@@ -82,6 +82,17 @@ test_that("forall permits multiple expectations", {
   )
 })
 
+test_that("generator compositions work", {
+  g  <- gen.int(100)
+  gx <- generate(for (i in g) {
+    gen.c(3, of = i)
+  })
+
+  forall (gx, function(x) {
+    expect_equal(unique(x), 3)
+  })
+})
+
 #####################
 # Generator testing #
 #####################
@@ -132,8 +143,8 @@ test_that("can mix pure and generative in a list",
 
 test_that("can build data frames with structure", {
   g <- gen.structure (
-       list ( gen.c.of(4, gen.element(2:10))
-            , gen.c.of(4, gen.element(2:10))
+       list ( gen.c( of = 4, gen.element(2:10))
+            , gen.c( of = 4, gen.element(2:10))
             , c('a', 'b', 'c', 'd')
             )
        , names = c("a","b", "constant")
@@ -144,8 +155,8 @@ test_that("can build data frames with structure", {
 
 test_that("can build data frames with data.map", {
   g <- gen.map ( as.data.frame,
-       list ( as = gen.c.of(4, gen.element(2:10))
-            , bs = gen.c.of(4, gen.element(2:10))
+       list ( as = gen.c( of = 4, gen.element(2:10))
+            , bs = gen.c( of = 4, gen.element(2:10))
             , cs = c('a', 'b', 'c', 'd')
             ))
   forall( g, function(x) expect_equal(nrow(x), 4))
