@@ -77,7 +77,7 @@ gen <- function(t) {
 #'   generators. This function is syntactic sugar over
 #'   `gen.and_then` to make it palatable for R users.
 #'
-#' @importFrom rlang is_call
+#' @importFrom rlang is_lang
 #' @importFrom rlang caller_env
 #' @importFrom rlang node_cdr
 #' @importFrom rlang node_car
@@ -91,7 +91,7 @@ gen <- function(t) {
 #' })
 generate <- function(loop) {
   loop <- substitute(loop)
-  if (!is_call(loop, quote(`for`))) {
+  if (!is_lang(loop, quote(`for`))) {
     stop("`loop` must be a `for` loop")
   }
 
