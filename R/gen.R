@@ -572,8 +572,8 @@ gen.list <- function(generator, from = 1, to = NULL, of = NULL) {
 #' @export
 #'
 #' @param tails a list of generators which should not contain
-#    recursive terms.
-#' @param heads a list of generator which can contain recursive
+#'   recursive terms.
+#' @param heads a list of generator which may contain recursive
 #'   terms.
 #'
 #' @examples

@@ -7,9 +7,10 @@
 gen.recursive(tails, heads)
 }
 \arguments{
-\item{tails}{a generator which should not contain}
+\item{tails}{a list of generators which should not contain
+recursive terms.}
 
-\item{heads}{a generator which can contain recursive
+\item{heads}{a list of generator which may contain recursive
 terms.}
 }
 \description{
@@ -17,7 +18,7 @@ This will choose between the recursive and non-recursive terms,
 while shrinking the size of the recursive calls.
 }
 \examples{
-# Generating a rose tree with integer leaves
+# Generating a tree with integer leaves
 treeGen <-
   gen.recursive(
     # The non-recursive cases

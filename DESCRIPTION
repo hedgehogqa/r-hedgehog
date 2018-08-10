@@ -8,8 +8,8 @@ Authors@R: person("Huw", "Campbell", email = "huw.campbell@gmail.com",
 Description: Provides a modern property-based
   testing system for R, in the spirit of QuickCheck.
 License: MIT + file LICENSE
-Imports: purrr
-Depends: testthat, rlang (>= 0.1.6)
+Imports: purrr, rlang (>= 0.1.6)
+Depends: testthat
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
