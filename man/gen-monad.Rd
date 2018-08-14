@@ -47,7 +47,7 @@ random seed, will build a lazy rose tree given a size
 parameter, which represent a value to test, as well
 as possible shrinks to try in the event of a failure.
 Usually, one should compose the provided generators
-instead of dealing with the gen contructor themselves.
+instead of dealing with the gen contructor itself.
 }
 \details{
 Hedgehog generators are functors and monads, allowing
@@ -68,21 +68,32 @@ composed with \code{\link{gen.shrink}}.
 }
 \examples{
 
-# or equivalently
-gen.map( function(x) { matrix(x, ncol=3)}, gen.c(of = 6, gen.element(1:30)) )
+# Create a generator which produces a number between
+# 1 and 30
+one_to_30 <- gen.element(1:30)
+
+# Use this to create a simple vector of 6 numbers
+# between 1 and 30.
+vector_one_to_30 <- gen.c(of = 6, one_to_30)
+
+# Create a matrix 2 by 3 matrix using said vector
+gen.map(function(x) matrix(x, ncol=3), vector_one_to_30)
 
 # To create a generator from a normal R random function
-# (this generator does not shrink).
-g <- gen.impure ( function(size) sample(1:10) )
+# use gen.impure (this generator does not shrink).
+g <- gen.impure(function(size) sample(1:10) )
 gen.example(g)
 # [1]  5  6  3  4  8 10  2  7  9  1
 
-# Same as above, as @bind@ is @and_then@ with arguments flipped.
-g <- gen.bind( function(x) gen.c(of = x, gen.element(1:10)), gen.element(2:100))
+# Composing generators with `gen.bind` and `gen.with` is
+# easy. Here we make a generator which first build a length,
+# then, elements of that length.
+g <- gen.bind(function(x) gen.c(of = x, gen.element(1:10)), gen.element(2:100))
 gen.example ( g )
 # [1] 8 6 2 7 5 4 2 2 4 6 4 6 6 3 6 7 8 5 4 6
 }
 \seealso{
-[generate()] for a more R idiomatic way of sequencing
-  together generators.
+\code{\link{generate}} for way an alternative, but
+  equally expressive way to compose generators using R's
+  "for" loop.
 }
