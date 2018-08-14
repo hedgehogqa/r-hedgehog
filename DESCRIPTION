@@ -1,13 +1,21 @@
 Package: hedgehog
 Type: Package
-Title: Property Testing for R
+Title: A Modern Property-Based Testing Library
 Version: 0.1
 Date: 2018-08-14
 Authors@R: person("Huw", "Campbell", email = "huw.campbell@gmail.com",
                   role = c("aut", "cre"))
-Description: Provides a modern property-based
-  testing system for R, in the spirit of QuickCheck.
+Description: Hedgehog will eat all your bugs.
+  'Hedgehog' is a modern property-based testing library in the
+  spirit of 'QuickCheck'. With 'Hedgehog', one can test properties
+  of their programs against randomly generated input, providing
+  far superior test coverage compared to unit testing. One of the
+  key benefits of 'Hedgehog' is integrated shrinking of
+  counterexamples, which allows one to quickly find the cause of
+  bugs, given salient examples when incorrect behaviour occurs.
 License: MIT + file LICENSE
+URL: https://hedgehog.qa
+BugReports: https://github.com/hedgehogqa/r-hedgehog/issues
 Imports: rlang (>= 0.1.6)
 Depends: testthat
 Suggests: knitr, rmarkdown
