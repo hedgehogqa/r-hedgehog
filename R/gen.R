@@ -281,6 +281,7 @@ gen.sized <- function(f) {
 #' gen.int(10) # a number up to 10
 #' gen.choice(gen.element(1:10), gen.element(letters))
 #' gen.choice(NaN, Inf, gen.unif(-10, 10), prob = c(1,1,10))
+#' gen.subsequence(1:10)
 #'
 #' @return \code{gen.element} returns an item from the list
 #'   or vector; \code{gen.int}, an integer up to the value
@@ -328,13 +329,14 @@ gen.choice <- function(..., prob = NULL) {
 #' @rdname gen-element
 #' @export
 gen.subsequence <- function(x) {
-    gen.and_then( gen.no.shrink( gen.int( length(x)) ), function(size_) {
-      gen.shrink(shrink.list,
-        gen.impure( function(g_size) {
-          x[sort(sample.int(length(x), size_))]
-        })
-      )
-    })
+    gen.choices <-
+      gen.impure(function(...)
+        sample(c(TRUE,FALSE), replace = T, size = length(x)))
+
+    gen.shrink(shrink.list,
+      gen.with(gen.choices, function(choices)
+        x[choices]
+      ))
 }
 
 #' @rdname gen-element
@@ -388,9 +390,11 @@ gen.sample.int <- function(n, size, replace = FALSE, prob = NULL) {
     # Can be a bit slow, so has an upper limit to the size of
     # lists to which it is applied.
     reorder.bubble <- function(xs) {
-      # Don't try if it's too big.
-      if (length(xs) > 30)
+      # Don't try if it's too big or can't be
+      # reordered.
+      if (length(xs) > 30 || length(xs) < 2)
         return(xs[c()])
+
 
       # Generate all possible pairs
       mat <- combn(seq_along(xs), 2)
@@ -408,12 +412,13 @@ gen.sample.int <- function(n, size, replace = FALSE, prob = NULL) {
     # argument to be a generator.
     gen.and_then(arg.size, function(size_) {
       gen.shrink(reorder,
-        gen.impure(function(g_size) {
+        gen.impure(function(...) {
           sample.int(n, size_, replace = replace, prob = prob)
         })
       )
     })
 }
+
 #' Generate a float between the from
 #' and to the values specified.
 #'
@@ -434,7 +439,7 @@ gen.sample.int <- function(n, size, replace = FALSE, prob = NULL) {
 gen.unif <- function(from, to, shrink.median = T) {
     gen.shrink(
         shrink.towards(qunif(ifelse(shrink.median, 0.5, 0), from, to))
-    ,   gen.impure(function(size) runif(1, from, to))
+    ,   gen.impure(function(...) runif(1, from, to))
     )
 }
 
@@ -451,7 +456,7 @@ gen.unif <- function(from, to, shrink.median = T) {
 gen.gamma <- function(shape, rate = 1, scale = 1/rate) {
     gen.shrink(
         shrink.towards(qgamma(0.5, shape, rate))
-    ,   gen.impure(function(size) rgamma(1, shape, rate))
+    ,   gen.impure(function(...) rgamma(1, shape, rate))
     )
 }
 
@@ -468,7 +473,7 @@ gen.gamma <- function(shape, rate = 1, scale = 1/rate) {
 gen.beta <- function(shape1, shape2, ncp = 0) {
     gen.shrink(
         shrink.towards(qbeta(0.5, shape1, shape2, ncp))
-    ,   gen.impure(function(size) rbeta(1, shape1, shape2, ncp))
+    ,   gen.impure(function(...) rbeta(1, shape1, shape2, ncp))
     )
 }
 
@@ -487,7 +492,7 @@ gen.beta <- function(shape1, shape2, ncp = 0) {
 #' gen.date()
 #' gen.date( from = as.Date("1939-09-01"), to = as.Date("1945-09-02"))
 gen.date <- function(from = as.Date("1900-01-01"), to = as.Date("3000-01-01")) {
-    gen.element( seq(from, to, by="day") )
+    gen.element(seq(from, to, by="day"))
 }
 
 #' Helper to create a generator with a
@@ -569,7 +574,7 @@ gen.list <- function(generator, from = 1, to = NULL, of = NULL) {
             shrinker <- function(as) {
                 Filter(function(ls) length(ls) >= from, shrink.list(as))
             }
-        gen.shrink(shrinker, gen.list(generator, of = num))
+            gen.shrink(shrinker, gen.list(generator, of = num))
         })
     })
   }

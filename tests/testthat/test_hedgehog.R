@@ -98,9 +98,34 @@ test_that("generator compositions work", {
 #####################
 context("Hedgehog Generator testing")
 
+test_that("gen.pure returns the value", {
+  forall (gen.pure(10), function(x) {
+    expect_equal(x, 10)
+  })
+})
+
+test_that("gen.sized respects the size parameter", {
+  sgen <- gen.sized(function(s) gen.int(s))
+  forall (sgen, function(x) {
+    expect_true(x <= 10)
+  }, size.limit = 10)
+
+  expect_failure(
+    forall (sgen, function(x) {
+      expect_true(x <= 10)
+    }, size.limit = 20)
+  )
+})
+
 test_that("gen.int only contains good values", {
   forall (gen.int(10), function(x) {
     expect_true(x <= 10 && x >= 0)
+  })
+})
+
+test_that("gen.sample.int returns subsets", {
+  forall(generate(for (i in gen.int(10)) gen.sample.int(10, i)), function(x) {
+    expect_true(all(x %in% 1:10))
   })
 })
 
@@ -116,7 +141,17 @@ test_that("gen.element produces single values from a list", {
   })
 })
 
-test_that("all generators shrink soundly", {
+test_that("gen.subsequence produces subsequences", {
+  forall (gen.subsequence(c()), function(x) {
+    expect_identical(x, c())
+  })
+  forall (gen.subsequence(1:10), function(x) {
+    expect_identical(x, sort(x))
+    expect_identical(x, intersect(x, 1:10))
+  })
+})
+
+test_that("generators shrink soundly", {
   forall (
       list( u = gen.unif( 0,10 )
           , g = gen.gamma( shape = 2 )

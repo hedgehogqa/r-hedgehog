@@ -51,7 +51,7 @@ shrink.halves <- function(x) {
 #' @param xs
 #'   the list to shrink
 shrink.list <- function(xs) {
-    len <- length(xs)
+    len     <- length(xs)
     remnums <- shrink.halves(len)
     new <- lapply(c(len, remnums), function(rn) {
         shrink.removes(rn, xs)
