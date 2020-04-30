@@ -11,7 +11,7 @@
 #' @param generator a generator or list of generators
 #'   (potentially nested) to use for value testing.
 #' @param property a function which takes a value from
-#'   from the generator and tests some predicated against
+#'   the generator and tests some predicated against
 #'   it.
 #' @param tests the number of tests to run
 #' @param size.limit the max size used for the generators
