@@ -149,7 +149,7 @@ gen.action <- function(commands, state, counter) {
       # These requires functions are needed to
       # ensure we have a good shrink.
       if (!do.call(command$require, c(list(state = state), as.list(input))))
-        stop("Command generation arguments voilate requirements")
+        stop("Command generation arguments violate requirements")
 
       # Get a variable name we'll use for the output
       # We just use sequential values, as we'll add
