@@ -4,9 +4,14 @@
 \alias{command}
 \title{State based testing commands}
 \usage{
-command(title, generator, execute, require = function(state, ...) T,
-  update = function(state, output, ...) state, ensure = function(state,
-  output, ...) NULL)
+command(
+  title,
+  generator,
+  execute,
+  require = function(state, ...) T,
+  update = function(state, output, ...) state,
+  ensure = function(state, output, ...) NULL
+)
 }
 \arguments{
 \item{title}{the name of this command, to be shown when

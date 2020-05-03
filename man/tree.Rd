@@ -2,7 +2,6 @@
 % Please edit documentation in R/tree.R
 \name{tree}
 \alias{tree}
-\alias{tree}
 \alias{tree.map}
 \alias{tree.bind}
 \alias{tree.liftA2}
