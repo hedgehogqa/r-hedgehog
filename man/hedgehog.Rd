@@ -3,7 +3,6 @@
 \docType{package}
 \name{hedgehog}
 \alias{hedgehog}
-\alias{hedgehog-package}
 \title{Property based testing in R}
 \description{
 Hedgehog is a modern property based testing

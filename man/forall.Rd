@@ -4,18 +4,22 @@
 \alias{forall}
 \title{Hedgehog property test}
 \usage{
-forall(generator, property, tests = getOption("hedgehog.tests", 100),
+forall(
+  generator,
+  property,
+  tests = getOption("hedgehog.tests", 100),
   size.limit = getOption("hedgehog.size", 50),
   shrink.limit = getOption("hedgehog.shrinks", 100),
   discard.limit = getOption("hedgehog.discards", 100),
-  curry = identical(class(generator), "list"))
+  curry = identical(class(generator), "list")
+)
 }
 \arguments{
 \item{generator}{a generator or list of generators
 (potentially nested) to use for value testing.}
 
 \item{property}{a function which takes a value from
-from the generator and tests some predicated against
+the generator and tests some predicated against
 it.}
 
 \item{tests}{the number of tests to run}
