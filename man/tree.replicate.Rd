@@ -5,7 +5,7 @@
 \alias{tree.replicateS}
 \title{Creating trees of lists}
 \usage{
-tree.replicate(num, ma, ...)
+tree.replicate(num, ma)
 
 tree.replicateS(num, ma, s, ...)
 }
@@ -15,11 +15,11 @@ tree.replicateS(num, ma, s, ...)
 \item{ma}{a function which (randomly) creates
 new tree to add to the list}
 
-\item{...}{extra arguments to pass to the tree
-generating function}
-
 \item{s}{a state used when replicating to
 keep track of.}
+
+\item{...}{extra arguments to pass to the tree
+generating function}
 }
 \description{
 Build a tree of a list, potentially
