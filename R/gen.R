@@ -562,7 +562,7 @@ gen.list <- function(generator, from = 1, to = NULL, of = NULL) {
     stop("Specify `to` and `from`, or `of`")
 
   if (!missing(of)) {
-    gen(function(size) tree.replicate(of, function() {
+    gen(function(size) tree.replicate(of, function(...) {
         gen.run(generator, size)
     }))
   } else {

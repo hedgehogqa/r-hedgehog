@@ -183,17 +183,49 @@ tree.sequence <- function ( trees ) {
 NULL
 
 #' @rdname tree.replicate
-tree.replicate <- function ( num, ma, ...) {
-  if ( num <= 0) {
-    tree ( list() )
-  } else {
-    tree.liftA2 (
-      cons
-    , do.call(ma, list(...))
-    , tree.replicate ( num - 1, ma, ... )
-    )
-  }
+tree.replicate <- function (num, ma) {
+  trees <- replicate(num, ma(), simplify = FALSE)
+  tree.interleave(trees)
 }
+
+
+# All ways a list can be split
+#
+# > splits(c(1,2,3]))
+# > ==
+# > [ ([], 1, [2, 3])
+#   , ([1], 2, [3])
+#   , ([1, 2], 3, [])
+#   ]
+#
+tree.splits <- function(xs) {
+  total <- length(xs)
+  lapply(seq_along(xs), function(x) {
+    list(
+      inits = xs[seq(from = 1,     length.out = x - 1)]
+    , focus = xs[[x]]
+    , tails = xs[seq(from = x + 1, length.out = total - x)]
+    )
+  })
+}
+
+tree.shrink_one <- function(trees) {
+  unlist(
+    lapply(tree.splits(trees), function(split) {
+      lapply(split$focus$children(), function(focus) {
+        tree.interleave(c(split$inits, list(focus), split$tails))
+      })
+    })
+  , recursive = FALSE)
+}
+
+tree.interleave <- function (trees) {
+  tree(
+    root = lapply(trees, function(tree) { tree$root })
+  , children_ = tree.shrink_one(trees)
+  )
+}
+
 
 #' @rdname tree.replicate
 tree.replicateS <- function ( num, ma, s, ...) {
