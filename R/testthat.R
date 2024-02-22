@@ -34,8 +34,13 @@ run.prop <- function ( property, arguments, curry ) {
 
   register_expectation <- function(e) {
     e           <- as.expectation(e)
-    test_error <<- e
-    ok         <<- ok && expectation_ok(e)
+    e_ok        <- expectation_ok(e)
+    ok         <<- ok && e_ok
+
+    # Register first failure only.
+    if (isFALSE(e_ok) && is.null(test_error)) {
+      test_error <<- e
+    }
   }
 
   handle_error <- function(e) {
