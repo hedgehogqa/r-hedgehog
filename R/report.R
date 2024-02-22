@@ -4,16 +4,16 @@
 #   the test on which the failure occurred
 # @param shrinks
 #   how many shrinks were performed
-# @param message
-#   the error message to print
+# @param messages
+#   a list of the error messages to print
 # @param counterexample
 #   the smallest counterexample to print
-report <- function ( tests, shrinks, message, counterexample ) {
+report <- function ( tests, shrinks, messages, counterexample ) {
   structure (
     list (
       tests = tests
     , shrinks = shrinks
-    , message = message
+    , messages = messages
     , counterexample = counterexample
     ), class = "report"
   )
@@ -26,8 +26,10 @@ print.report <- function ( x, ... ) {
     # report type.
     cat ( paste("Falsifiable after", x$tests, "tests, and",  x$shrinks, "shrinks\n") )
 
-    # Print the message which comes with the counterexample.
-    print ( x$message )
+    # Print the messages which come with the counterexample.
+    for (message in x$messages) {
+      print ( message )
+    }
 
     # Show the counterexamples
     cat ( "Counterexample:\n")

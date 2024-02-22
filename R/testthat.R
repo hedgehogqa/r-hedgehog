@@ -27,7 +27,7 @@
 # @return the error and a bool indicating success.
 run.prop <- function ( property, arguments, curry ) {
   arguments  <- if ( curry ) arguments else list ( arguments )
-  test_error <- NULL
+  test_errors <- list()
   handled    <- F
   discard    <- F
   ok         <- T
@@ -37,9 +37,8 @@ run.prop <- function ( property, arguments, curry ) {
     e_ok        <- expectation_ok(e)
     ok         <<- ok && e_ok
 
-    # Register first failure only.
-    if (isFALSE(e_ok) && is.null(test_error)) {
-      test_error <<- e
+    if (isFALSE(e_ok)) {
+      test_errors <<- c(test_errors, list(e))
     }
   }
 
@@ -47,15 +46,14 @@ run.prop <- function ( property, arguments, curry ) {
     handled    <<- TRUE
     register_expectation(e)
     e$handled   <- TRUE
-    test_error <<- e
   }
 
   handle_fatal <- function(e) {
     handled <<- TRUE
     # Quote: Hadley
     # > Error caught in handle_error() has precedence
-    if (!is.null(test_error)) {
-      if (isTRUE(test_error$handled)) {
+    if (length(test_errors) == 0) {
+      if (all(isTRUE(test_errors$handled))) {
         return()
       }
     }
@@ -98,7 +96,7 @@ run.prop <- function ( property, arguments, curry ) {
     )
   , error = handle_fatal
   )
-  list ( discard = discard, ok = ok, test_error = test_error)
+  list ( discard = discard, ok = ok, test_errors = test_errors)
 }
 
 # From testthat.

@@ -92,12 +92,12 @@ forall <- function( generator
       # counterexample we can ( by shrinking ).
       counterexample <- find.smallest( tree, property, curry, shrink.limit, 0, discards, discard.limit )
 
-      # Rerun the smallest counterexample to grab the specific error
-      test_error     <- run.prop( property, counterexample$smallest, curry )$test_error
+      # Rerun the smallest counterexample to grab the specific errors
+      test_errors     <- run.prop( property, counterexample$smallest, curry )$test_errors
 
       # Make a nice error report for the user.
       report_        <- capture.output(print(
-                          report( test, counterexample$shrinks, test_error, counterexample$smallest )
+                          report( test, counterexample$shrinks, test_errors, counterexample$smallest )
                         ))
       # Exit the loop with failure, this will be picked up
       # by testthat and displayed nicely.
