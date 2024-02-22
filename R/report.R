@@ -24,11 +24,12 @@ print.report <- function ( x, ... ) {
     # Print a nice message for the user.
     # This could be moved into a fully fledged
     # report type.
-    cat ( paste("Falsifiable after", x$tests, "tests, and",  x$shrinks, "shrinks\n") )
+    cat ( paste("Falsifiable after", x$tests, "tests, and",  x$shrinks, "shrinks\n\n") )
 
     # Print the messages which come with the counterexample.
     for (message in x$messages) {
       print ( message )
+      cat ( "\n" )
     }
 
     # Show the counterexamples
