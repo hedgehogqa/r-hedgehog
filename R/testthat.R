@@ -80,7 +80,7 @@ run.prop <- function ( property, arguments, curry ) {
     discard <<- TRUE
   }
 
-tryCatch(
+  tryCatch(
     withCallingHandlers({
           do.call( property, arguments )
           if (!handled)
@@ -123,7 +123,7 @@ as.expectation.expectation <- function(x, ..., srcref = NULL) {
 }
 as.expectation.logical <- function(x, message, ..., srcref = NULL, info = NULL) {
   type <- if (x) "success" else "failure"
-  testthat::expectation(type, paste(message, info, sep = "\n"), srcref = srcref)
+  testthat::new_expectation(type, paste(message, info, sep = "\n"), srcref = srcref)
 }
 as.expectation.error <- function(x, ..., srcref = NULL) {
   error <- x$message
@@ -133,10 +133,10 @@ as.expectation.error <- function(x, ..., srcref = NULL) {
 }
 as.expectation.warning <- function(x, ..., srcref = NULL) {
   msg <- x$message
-  testthat::expectation("warning", msg, srcref)
+  testthat::new_expectation("warning", msg, srcref = srcref)
 }
 as.expectation.skip <- function(x, ..., srcref = NULL) {
   error <- x$message
   msg <- gsub("Error.*?: ", "", as.character(error))
-  testthat::expectation("skip", msg, srcref)
+  testthat::new_expectation("skip", msg, srcref = srcref)
 }
