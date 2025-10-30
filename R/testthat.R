@@ -60,7 +60,8 @@ run.prop <- function ( property, arguments, curry ) {
   handle_expectation <- function(e) {
     handled <<- TRUE
     register_expectation(e)
-    invokeRestart("continue_test")
+    tryInvokeRestart("muffle_expectation") # testthat >= 3.3.0
+    tryInvokeRestart("continue_test")      # testthat < 3.3.0
   }
 
   handle_warning <- function(e) {
@@ -79,7 +80,7 @@ run.prop <- function ( property, arguments, curry ) {
     discard <<- TRUE
   }
 
-  tryCatch(
+tryCatch(
     withCallingHandlers({
           do.call( property, arguments )
           if (!handled)
@@ -93,6 +94,7 @@ run.prop <- function ( property, arguments, curry ) {
     )
   , error = handle_fatal
   )
+  
   list ( discard = discard, ok = ok, test_error = test_error)
 }
 
@@ -127,7 +129,7 @@ as.expectation.error <- function(x, ..., srcref = NULL) {
   error <- x$message
   msg <- gsub("Error.*?: ", "", as.character(error))
   msg <- gsub("\n$", "", msg)
-  testthat::expectation("error", msg, srcref)
+  testthat::new_expectation("error", msg, srcref = srcref)
 }
 as.expectation.warning <- function(x, ..., srcref = NULL) {
   msg <- x$message
