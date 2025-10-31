@@ -21,8 +21,8 @@ snoc <- function (xs, x) {
 
 > Hedgehog will eat all your bugs.
 
-State machine testing in [Hedgehog](http://hedgehog.qa/) is an
-interesting and expressive testing paradigm for R.
+State machine testing in [Hedgehog](https://github.com/hedgehogqa)
+is an interesting and expressive testing paradigm for R.
 
 The goal is to test object oriented code or complex systems involving
 state and hidden or abstracted functionality.
