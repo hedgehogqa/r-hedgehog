@@ -60,7 +60,8 @@ run.prop <- function ( property, arguments, curry ) {
   handle_expectation <- function(e) {
     handled <<- TRUE
     register_expectation(e)
-    invokeRestart("continue_test")
+    tryInvokeRestart("muffle_expectation") # testthat >= 3.3.0
+    tryInvokeRestart("continue_test")      # testthat < 3.3.0
   }
 
   handle_warning <- function(e) {
@@ -93,6 +94,7 @@ run.prop <- function ( property, arguments, curry ) {
     )
   , error = handle_fatal
   )
+  
   list ( discard = discard, ok = ok, test_error = test_error)
 }
 
@@ -121,20 +123,20 @@ as.expectation.expectation <- function(x, ..., srcref = NULL) {
 }
 as.expectation.logical <- function(x, message, ..., srcref = NULL, info = NULL) {
   type <- if (x) "success" else "failure"
-  testthat::expectation(type, paste(message, info, sep = "\n"), srcref = srcref)
+  testthat::new_expectation(type, paste(message, info, sep = "\n"), srcref = srcref)
 }
 as.expectation.error <- function(x, ..., srcref = NULL) {
   error <- x$message
   msg <- gsub("Error.*?: ", "", as.character(error))
   msg <- gsub("\n$", "", msg)
-  testthat::expectation("error", msg, srcref)
+  testthat::new_expectation("error", msg, srcref = srcref)
 }
 as.expectation.warning <- function(x, ..., srcref = NULL) {
   msg <- x$message
-  testthat::expectation("warning", msg, srcref)
+  testthat::new_expectation("warning", msg, srcref = srcref)
 }
 as.expectation.skip <- function(x, ..., srcref = NULL) {
   error <- x$message
   msg <- gsub("Error.*?: ", "", as.character(error))
-  testthat::expectation("skip", msg, srcref)
+  testthat::new_expectation("skip", msg, srcref = srcref)
 }
