@@ -1,8 +1,8 @@
 Package: hedgehog
 Type: Package
 Title: Property-Based Testing
-Version: 0.1
-Date: 2018-08-14
+Version: 0.2
+Date: 2025-11-01
 Authors@R: person("Huw", "Campbell", email = "huw.campbell@gmail.com",
                   role = c("aut", "cre"))
 Description: Hedgehog will eat all your bugs.
@@ -14,7 +14,7 @@ Description: Hedgehog will eat all your bugs.
   counterexamples, which allows one to quickly find the cause of
   bugs, given salient examples when incorrect behaviour occurs.
 License: MIT + file LICENSE
-URL: https://hedgehog.qa
+URL: https://github.com/hedgehogqa
 BugReports: https://github.com/hedgehogqa/r-hedgehog/issues
 Imports: rlang (>= 0.1.6)
 Depends: testthat

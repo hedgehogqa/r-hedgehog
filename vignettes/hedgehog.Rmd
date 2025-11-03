@@ -18,7 +18,7 @@ set.seed(1014)
 
 > Hedgehog will eat all your bugs.
 
-[Hedgehog](http://hedgehog.qa/) is a modern property based testing
+[Hedgehog](https://github.com/hedgehogqa) is a modern property based testing
 system in the spirit of QuickCheck, originally written in Haskell,
 but now also available in R. One of the key benefits of Hedgehog is
 integrated shrinking of counterexamples, which allows one to quickly
@@ -216,5 +216,5 @@ properties in stateful systems to be investigated. See the
 [state-machines](state-machines.html) vignette for more information.
 
 
-  [testthat]: https://github.com/hadley/testthat
+  [testthat]: https://github.com/r-lib/testthat
   [jh-dropbox]: https://www.youtube.com/watch?v=H18vxq-VsCk
